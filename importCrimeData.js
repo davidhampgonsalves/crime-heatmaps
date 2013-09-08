@@ -1,6 +1,10 @@
 var fs = require('fs');
 var Shred = require("shred");
+var mongo = require('mongodb');
 
+var mongoUri = process.env.MONGOHQ_URL ||
+  process.env.MONGOHQ_URL ||
+  'mongodb://crimes:theendhasnoend@paulo.mongohq.com:10029/app17982596';
 
 //Set PATH=c:/node;%PATH%
 
@@ -27,6 +31,7 @@ function writeCrimesToDatabase(data) {
 	var tag;
 	var count = 0;
 	var coordinateAccuracy = 3;
+	var newCrimes = [];
 	while(true) {
 		tag = getNextTagValue('EVT_RIN</span>:</strong>', data, index);
 		if(tag === null)
@@ -54,10 +59,20 @@ function writeCrimesToDatabase(data) {
 
 		//write crime data to db
 		//insert into crimes(esid, lat, lon, type, date) values($1, $2, $3, $4, $5)
-	    console.log(JSON.stringify([latitude, longitude, '', date]));
+	    newCrimes.push({_id: id, latitude: latitude, longitude: longitude, type: type, date: date});
 	}
 
-	console.log('added ' + count + ' new records.');
+	mongo.Db.connect(mongoUri, {safe:true}, function (err, db) {
+	  db.collection('crimes', function(er, crimesCollection) {
+	  	while(newCrimes.length > 0)
+	    	crimesCollection.insert(newCrimes.pop());
+
+	    console.log('added ' + count + ' new records.');
+	    db.close();
+	  });
+	});
+
+	
 }
 
 function round(value, places) {

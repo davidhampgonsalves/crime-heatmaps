@@ -4,7 +4,8 @@
   "private": true,
   "dependencies": {
   	"shred": "*",
-     "express": "3.1.x"
+     "express": "3.1.x",
+     "mongodb" : "1.1.11"
   },
   "engines": {
     "node": "0.10.x",
