@@ -530,11 +530,11 @@
                     imageData[i-1]=palette[offset+2];
                     
                     if (premultiplyAlpha) {
-                        // To fix browsers that premultiply incorrectly, we'll pass in a value scaled
-                        // appropriately so when the multiplication happens the correct value will result.
-                        imageData[i-3] /= 255/finalAlpha;
-                        imageData[i-2] /= 255/finalAlpha;
-                        imageData[i-1] /= 255/finalAlpha;
+                    	// To fix browsers that premultiply incorrectly, we'll pass in a value scaled
+                    	// appropriately so when the multiplication happens the correct value will result.
+                    	imageData[i-3] /= 255/finalAlpha;
+                    	imageData[i-2] /= 255/finalAlpha;
+                    	imageData[i-1] /= 255/finalAlpha;
                     }
                     
                     // we want the heatmap to have a gradient from transparent to the colors

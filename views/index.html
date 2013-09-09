@@ -1,5 +1,118 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  
+  <style>
+    * {
+      padding:0;
+      margin:0;
+    }
+    html, body {
+      width: 100%; 
+      height: 100%;
+    }
+
+    #heatmapArea {
+      height: 100%;
+      width: 100%;
+    }
+
+  </style>
+  </head>
 <body>
-	<%= JSON.stringify(data) %>
+
+<div id="heatmapArea"> </div>
+
+<script type="text/javascript" src="heatmap.js"></script>
+<script type="text/javascript" src="heatmap-gmaps.js"></script>
+<script type="text/javascript">
+
+  var Data = <%- JSON.stringify(data) %>;
+
+  function getHeatmapData(crimeData, typeFilters) {
+    var points = {};
+    for(var i = crimeData.length-1 ; i >= 0 ; i--) {
+      var crime = crimeData[i];
+      var type = crime[2];
+
+      if(typeFilters && typefilters.indexOf(type) === -1)
+        continue;
+
+      var lat = crime[0];
+      var lon = crime[1];
+      var date = new Date(crime[3]);
+
+      var pointsX = points[lat];
+      if(!pointsX) {
+        pointsX = [];
+        points[lat] = pointsX;
+      }
+
+      var point = pointsX[lon];
+      if(!point) {
+        point = {lat : crime[0], lng : crime[1], count: 0};
+        pointsX[lon] = point;
+      }
+      point.count += 1;
+    }
+
+    var heatmapData = [];
+    var max = 1;
+    for(var x in points) {
+      var pointsX = points[x];
+      for(var y in pointsX) {
+        var point = pointsX[y];
+        heatmapData.push(point);
+
+        if(point.count > max)
+          max = point.count;
+      }
+    }
+
+    return {max: max, data: heatmapData};
+  }
+
+        !function($){
+            $(function(){
+
+    var myLatlng = new google.maps.LatLng(44.6544, -63.5992);
+
+    var myOptions = {
+      zoom: 12,
+      center: myLatlng,
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      disableDefaultUI: false,
+      scrollwheel: true,
+      draggable: true,
+      navigationControl: true,
+      mapTypeControl: false,
+      scaleControl: true,
+      disableDoubleClickZoom: false
+    };
+    var map = new google.maps.Map($("#heatmapArea")[0], myOptions);
+    
+    var heatmap = new HeatmapOverlay(map, {
+        "radius":30,
+        "visible":true, 
+        "opacity":50
+    });
+  
+    
+    var heatmapData = getHeatmapData(Data);
+    // this is important, because if you set the data set too early, the latlng/pixel projection doesn't work
+    google.maps.event.addListenerOnce(map, "idle", function() {
+        window.setInterval(function() {
+          heatmap.setDataSet(getHeatmapData(Data.crimes));
+          console.log('redrawing');
+        }, 900)
+        
+        heatmap.setDataSet(heatmapData);
+    });
+
+            });
+        }(window.jQuery)
+    </script>
 </body>
 </html>

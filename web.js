@@ -1,6 +1,8 @@
 var express = require("express");
 var mongo = require('mongodb');
 
+var path = require('path');
+
 var mongoUri = process.env.MONGOHQ_URL ||
   process.env.MONGOHQ_URL ||
   'mongodb://crimes:theendhasnoend@paulo.mongohq.com:10029/app17982596';
@@ -10,6 +12,7 @@ app.configure(function(){
   app.set('views', __dirname + '/views');
   app.engine('html', require('ejs').renderFile);
 
+  app.use(express.static(path.join(__dirname, 'js')));
   app.use(express.logger());
 
   app.use(express.bodyParser());
