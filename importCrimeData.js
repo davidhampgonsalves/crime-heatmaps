@@ -71,8 +71,6 @@ function writeCrimesToDatabase(data) {
 	    db.close();
 	  });
 	});
-
-	
 }
 
 function round(value, places) {

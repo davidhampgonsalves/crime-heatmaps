@@ -5,6 +5,7 @@
   "dependencies": {
   	"shred": "*",
      "express": "3.1.x",
+     "ejs": "*",
      "mongodb" : "1.1.11"
   },
   "engines": {
