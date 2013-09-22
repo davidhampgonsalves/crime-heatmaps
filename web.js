@@ -25,7 +25,7 @@ app.get('/', function(req, res) {
 
 	mongo.Db.connect(mongoUri, function (err, db) {
 	  db.collection('crimes', function(er, collection) {
-		var cursor = collection.find({});
+		var cursor = collection.find({}).sort({'​date':1});
 		var crimes = [];
 		cursor.each(function(err, crime) {
 			//when our cusor is exhausted then render template
@@ -34,7 +34,7 @@ app.get('/', function(req, res) {
 				res.render('index.html', { data: serverData });
 				return;
 			}
-			crimes.push([crime.latitude, crime.longitude, crime.type, crime.date]);
+			crimes.push([crime.latitude, crime.longitude, crime.type, new Date(crimes.date).getTime()]);
 		});
 
 	  });

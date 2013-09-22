@@ -298,17 +298,6 @@
 
   var Data = <%- JSON.stringify(data) %>;
 
-  //TODO: do this server side
-  for(var i=Data.crimes.length-1 ; i >= 0 ; i--) {
-    var crime = Data.crimes[i];
-    crime[3] = new Date(crime[3]).getTime();
-  }
-
-  Data.crimes = Data.crimes.sort(function(crime1, crime2) {
-    return crime1[3] - crime2[3];
-  });
-
-
 </script>
 </body>
 </html>
