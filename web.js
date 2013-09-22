@@ -34,7 +34,7 @@ app.get('/', function(req, res) {
 				res.render('index.html', { data: serverData });
 				return;
 			}
-			crimes.push([crime.latitude, crime.longitude, crime.type, new Date(crimes.date).getTime()]);
+			crimes.push([crime.latitude, crime.longitude, crime.type, new Date(crime.date).getTime()]);
 		});
 
 	  });
