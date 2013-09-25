@@ -29,7 +29,7 @@
 <script type="text/javascript" src="heatmap-gmaps.js"></script>
 <script type="text/javascript">
 
-/*
+  /*
    * emits events after each animation frame and after animation is complete
   */
   var CrimeAnimator = function(data, heatmap) { 
@@ -51,8 +51,8 @@
 
     //calculate how long crimes should be displayed for based on our range
     this.visibleLifespan = Math.ceil(this.dayRange / 10);
-    if(this.visibleLifespan < 20)
-      this.visibleLifespan = 20;
+    if(this.visibleLifespan < 10)
+      this.visibleLifespan = 10;
     else if(this.visibleLifespan > 30)
       this.visibleLifespan = 30;
     this.visibleLifespan = this.visibleLifespan * this.DAY_IN_MILLI;
@@ -109,7 +109,6 @@
     var nextDate = this.currentDate + ((now - this.lastDrawTime) * this.animationTimeMultiplier);
     var visibleThreshold = this.currentDate - this.visibleLifespan;
 
-
     while(this.lowIndex < this.dataLength) {
       if(this.data[this.lowIndex][3] >= visibleThreshold)
         break;
@@ -127,18 +126,17 @@
 
       this.highIndex += 1;
     }
-    
+
+    //increment currentDate to next date
+    this.currentDate = nextDate;    
 
     //if no removals to make then just add the crime points that are between the currentDate and the next Date and aren't filtered
     var currentData = this.getCurrentHeatmapData(visibleThreshold);
-    console.log("drawing " + currentData.data.length + " frames from " + new Date(this.currentDate) + ' to ' +  new Date(nextDate));
-
     this.heatmap.setDataSet(currentData); 
 
-    //increment currentDate to next date
-    this.currentDate = nextDate;
+    console.log("drawing " + currentData.data.length + " frames from " + new Date(this.currentDate) + ' to ' +  new Date(nextDate) + '(' + this.lowIndex + ' - ' + this.highIndex +  ') in ' + (new Date().getTime() - now) + ' milli');
+
     this.lastDrawTime = now;
-    console.log("drawing took " + (new Date().getTime() - now) + ' milli');
 
     if(this.highIndex >= this.dataLength - 1) {
       //looks like we are done, fire animation end event
@@ -174,10 +172,11 @@
   CrimeAnimator.prototype.getCurrentHeatmapData = function getCurrentHeatmapData(visibleThreshold) {
     var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
     
-    var count, distinceFromHighIndex, heatmapData = [], currentDataRange = (this.highIndex - this.lowIndex);
-    var fadeInCuttoff = currentDataRange * 0.2;
-    var fadeInDataRange = this.highIndex - fadeInCuttoff;
-
+    var count, timeFromHighIndex, timeRange, heatmapData = [];
+    var highIndexTime = currentData[currentData.length - 1][3];
+    var currentTimeRange = highIndexTime - currentData[0][3];
+    var fadeInTimeRange = Math.abs(currentTimeRange * 0.5);
+    var fadeOutTimeRange = currentTimeRange - fadeInTimeRange;
     for(var i = currentData.length-1 ; i >= 0 ; i--) {
       var crime = currentData[i];
       var type = crime[2];
@@ -185,10 +184,13 @@
       if(this.filters.indexOf(type) >= 0)
         continue;
 
-      distinceFromHighIndex = this.highIndex - i;
-      count = distinceFromHighIndex / (distinceFromHighIndex < fadeInCuttoff ? fadeInDataRange : currentDataRange);
-
-      heatmapData.push({lat : crime[0], lng : crime[1], count: count * 100});
+      timeFromHighIndex = highIndexTime - crime[3];
+      timeRange = timeFromHighIndex < fadeInTimeRange ? fadeInTimeRange : fadeOutTimeRange;
+      //fade out will be broken
+      count = 50 * (Math.cos((timeFromHighIndex/timeRange) * 3.14) / 2);
+      count = 50;
+                      
+      heatmapData.push({lat : crime[0], lng : crime[1], count: count});
     }
 
     return {max: 100, data: heatmapData};
@@ -245,6 +247,14 @@
   }(window.jQuery)
 
   var Data = <%- JSON.stringify(data) %>;
+
+  //transform inflate dates from server
+  var year = Data.year;
+  var crimes = Data.crimes;
+  for(var i=crimes.length-1 ; i >= 0 ; i--) {
+    var crime = crimes[i];
+    crime[3] = new Date(crime[3] + '-' + crime[4] + '-' + year).getTime();
+  }
 
 </script>
 </body>

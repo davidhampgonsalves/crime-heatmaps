@@ -22,7 +22,7 @@ app.configure(function(){
 
 app.get('/', function(req, res) {
 	var serverData = {};
-
+	serverData.year = null;
 	mongo.Db.connect(mongoUri, function (err, db) {
 	  db.collection('crimes', function(er, collection) {
 		var cursor = collection.find({}).sort({'​date':1});
@@ -34,7 +34,12 @@ app.get('/', function(req, res) {
 				res.render('index.html', { data: serverData });
 				return;
 			}
-			crimes.push([crime.latitude, crime.longitude, crime.type, new Date(crime.date).getTime()]);
+			
+			var crimeDate = new Date(crime.date);
+			if(!serverData.year)
+				serverData.year = crimeDate.getFullYear();
+
+			crimes.push([crime.latitude, crime.longitude, crime.type, crimeDate.getMonth(), crimeDate.getDate()]);
 		});
 
 	  });
