@@ -29,7 +29,7 @@
 <script type="text/javascript" src="heatmap-gmaps.js"></script>
 <script type="text/javascript">
 
-  /*
+ /*
    * emits events after each animation frame and after animation is complete
   */
   var CrimeAnimator = function(data, heatmap) { 
@@ -47,7 +47,7 @@
     this.lastDrawTime = new Date().getTime();
 
     //calculate the number of days that elapse for each animation frame
-    this.animationTimeMultiplier = 50000;
+    this.animationTimeMultiplier = 50000; //TODO: speed this up depending on dayRange
 
     //calculate how long crimes should be displayed for based on our range
     this.visibleLifespan = Math.ceil(this.dayRange / 10);
@@ -134,7 +134,7 @@
     var currentData = this.getCurrentHeatmapData(visibleThreshold);
     this.heatmap.setDataSet(currentData); 
 
-    console.log("drawing " + currentData.data.length + " frames from " + new Date(this.currentDate) + ' to ' +  new Date(nextDate) + '(' + this.lowIndex + ' - ' + this.highIndex +  ') in ' + (new Date().getTime() - now) + ' milli');
+    console.log(currentData.data.length + " frames from " + new Date(nextDate - visibleThreshold) + ' to ' +  new Date(nextDate) + '(' + this.lowIndex + ' - ' + this.highIndex +  ') in ' + (new Date().getTime() - now) + ' milli');
 
     this.lastDrawTime = now;
 
@@ -173,10 +173,8 @@
     var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
     
     var count, timeFromHighIndex, timeRange, heatmapData = [];
-    var highIndexTime = currentData[currentData.length - 1][3];
-    var currentTimeRange = highIndexTime - currentData[0][3];
-    var fadeInTimeRange = Math.abs(currentTimeRange * 0.5);
-    var fadeOutTimeRange = currentTimeRange - fadeInTimeRange;
+    var currentTimeRange = this.currentDate - visibleThreshold;
+
     for(var i = currentData.length-1 ; i >= 0 ; i--) {
       var crime = currentData[i];
       var type = crime[2];
@@ -184,16 +182,14 @@
       if(this.filters.indexOf(type) >= 0)
         continue;
 
-      timeFromHighIndex = highIndexTime - crime[3];
-      timeRange = timeFromHighIndex < fadeInTimeRange ? fadeInTimeRange : fadeOutTimeRange;
-      //fade out will be broken
-      count = 50 * (Math.cos((timeFromHighIndex/timeRange) * 3.14) / 2);
-      count = 50;
+      timeFromHighIndex = this.currentDate - crime[3];
+      var x = timeFromHighIndex / currentTimeRange;
+      count = 50 * 4 * (x - Math.pow(x, 2));
                       
       heatmapData.push({lat : crime[0], lng : crime[1], count: count});
     }
 
-    return {max: 100, data: heatmapData};
+    return {max: 75, data: heatmapData};
   };
 
   var ProgressBar = {
@@ -228,12 +224,12 @@
       var heatmap = new HeatmapOverlay(map, {
           "radius":30,
           "visible":true, 
-          "opacity":100
+          "opacity":60
       });
 
-      var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || 
-                              window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function(fn) {return setTimeout(fn, 1000 / 60);};
-      window.requestAnimationFrame = requestAnimationFrame;
+      window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || 
+                              window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || 
+                              function(fn) {return setTimeout(fn, 1000 / 60);};
 
       // this is important, because if you set the data set too early, the latlng/pixel projection doesn't work
       google.maps.event.addListenerOnce(map, "idle", function() {
@@ -247,14 +243,15 @@
   }(window.jQuery)
 
   var Data = <%- JSON.stringify(data) %>;
-
-  //transform inflate dates from server
+  
+  //transform and inflate dates from server and create mock times so that each days data is at least somewhat distributed
   var year = Data.year;
   var crimes = Data.crimes;
   for(var i=crimes.length-1 ; i >= 0 ; i--) {
     var crime = crimes[i];
-    crime[3] = new Date(crime[3] + '-' + crime[4] + '-' + year).getTime();
+    crime[3] = Date.parse(year + '/' + crime[3] + '/' + crime[4] +  ' ' + Math.floor(Math.random()*24) + ':00');
   }
+
 
 </script>
 </body>
