@@ -13,6 +13,7 @@ app.configure(function(){
   app.engine('html', require('ejs').renderFile);
 
   app.use(express.static(path.join(__dirname, 'js')));
+  app.use(express.static(path.join(__dirname, 'img')));
   app.use(express.logger());
 
   app.use(express.bodyParser());

@@ -8,6 +8,9 @@
     * {
       padding:0;
       margin:0;
+
+      font-family: Arial, san-serif;
+      color:white;
     }
     html, body {
       width: 100%; 
@@ -19,15 +22,64 @@
       width: 100%;
     }
 
+    #progress-bar {
+      position:absolute;
+      overflow:visible;
+      height:100%;
+      right:0;
+      top:0;
+      z-index:99;
+      display:table;
+
+      background-color:rgb(100,100,100);
+      background-image:url('white.jpg');
+      background-repeat:no-repeat;
+    }
+
+    #progress-bar div {
+      display:table-row;
+    }
+
+    #progress-bar div:hover {
+      background:rgb(100, 100, 100);
+    }
+
+    #progress-bar div.disabled {
+      background: rgb(200,200,200);
+    }
+
+    #progress-bar span {
+      display:table-cell;
+      vertical-align: middle;
+      text-align:center;
+      background: rgba(255,0,0,0.5);
+      padding: 0 20px;
+    }
   </style>
   </head>
 <body>
 
-<div id="heatmapArea"> </div>
+<div id="heatmapArea"></div>
+<div id="progress-bar">
+  <div data-month=1><span>January</span></div>
+  <div data-month=2><span>February</span></div>
+  <div data-month=3><span>March</span></div>
+  <div data-month=4><span>April</span></div>
+  <div data-month=5><span>May</span></div>
+  <div data-month=6><span>June</span></div>
+  <div data-month=7><span>July</span></div>
+  <div data-month=8><span>August</span></div>
+  <div data-month=9><span>September</span></div>
+  <div data-month=10><span>October</span></div>
+  <div data-month=11><span>November</span></div>
+  <div data-month=12><span>December</span></div>
+</div>
 
 <script type="text/javascript" src="heatmap.js"></script>
 <script type="text/javascript" src="heatmap-gmaps.js"></script>
 <script type="text/javascript">
+
+  //http://heatmapdemo.alastair.is/js/map/heatmaplayer.js
 
  /*
    * emits events after each animation frame and after animation is complete
@@ -42,12 +94,14 @@
     this.dateRange = {start: data[0][3], end: data[data.length-1][3]};
     this.dayRange = Math.ceil((this.dateRange.end - this.dateRange.start) / this.DAY_IN_MILLI);
 
+    this.isPaused = false;
+
     //set the first day to draw to our earliest crime
     this.currentDate = this.dateRange.start;
     this.lastDrawTime = new Date().getTime();
 
     //calculate the number of days that elapse for each animation frame
-    this.animationTimeMultiplier = 50000; //TODO: speed this up depending on dayRange
+    this.animationTimeMultiplier = 100000; //TODO: speed this up depending on dayRange
 
     //calculate how long crimes should be displayed for based on our range
     this.visibleLifespan = Math.ceil(this.dayRange / 10);
@@ -62,21 +116,48 @@
 
     this.filters = [];
 
+    this.setupProgressBar();
   };
 
   CrimeAnimator.prototype.DAY_IN_MILLI = 1000 * 60 * 60 * 24;
+
+  CrimeAnimator.prototype.setupProgressBar = function setupProgressBar() {
+      //setup the progress bar for our current date range
+    this.progressBar = $('#progress-bar');
+
+    this.totalTimeRange = this.dateRange.end - this.dateRange.start;
+
+    //disable months we don't have data for and determine the pixel distance to use for our progress bar
+    var firstMonth = new Date(this.dateRange.start).getMonth();
+    var lastMonth = new Date(this.dateRange.end).getMonth();
+
+    //TODO: the start/end should be based off determining the height of one month and then calcing the rest so that we can get good indicators for partial months
+    this.progressStart = null;
+    this.progressEnd = null;
+    var monthElements = this.progressBar.children();
+    for(var i=0 ; i < 12 ; i++) {
+      var $monthElement = $(monthElements[i]);
+
+      if(i < firstMonth || i > lastMonth) 
+        $monthElement.addClass('disabled');
+
+      else if(!this.progressStart) 
+        this.progressStart = $monthElement.position().top;
+
+      else if(!this.progressEnd && i === lastMonth)
+        this.progressEnd = $monthElement.position().top;
+    }
+
+    monthElements.click(this.drawMonth.bind(this));
+
+    this.totalPixelRange = this.progressStart - this.progressEnd;
+  };
 
   CrimeAnimator.prototype.applyFilters = function setData(filters) {
     this.filters = filters;
   };
 
   CrimeAnimator.prototype.drawAll = function drawAll() { 
-
-    //set the current date to the first of the month
-    //this.currentDate = this.dateRange.start;
-
-    //set the animation day interval to be a month
-    //this.frameToDayRatio = Math.ceil(this.dateRange.end - this.dateRange.start) / this.DAY_IN_MILLI;
 
     //reset the data indexes
     this.lowIndex = 0;
@@ -86,55 +167,69 @@
     this.draw();
   },
 
-  CrimeAnimator.prototype.drawMonth = function drawMonth(month) {
+  CrimeAnimator.prototype.drawMonth = function drawMonth(e) {
+    var month = $(e.target).attr('data-month');
 
     //set the current date to the first of the month
-    /*var firstDate = new Date(this.dateRange.start);
+    var firstDate = new Date(this.dateRange.start);
     this.currentDate = new Date(firstDate.getFullYear(), month, 1).getTime();
 
+    var lastDate = new Date(firstDate.getFullYear(), month + 1, -1);
+
     //set the animation day interval to be a month so it displays all at once in a single frame
-    this.frameToDayRatio = new Date(firstDate.getFullYear(), month + 1, 0).getDate();
-    this.visibleLifespan = this.frameToDayRatio; //avoid data being hidden
+    this.visibleLifespan = lastDate.getDate() * DAY_IN_MILLI; //avoid data being hidden
 
     //reset the data indexes
     this.lowIndex = 0;
     this.highIndex = 0;
 
-    this.draw();*/
+    //this should draw a single frame
+    this.draw();
   };
 
   CrimeAnimator.prototype.draw = function draw() {
+    
     var now = new Date().getTime();
 
-    var nextDate = this.currentDate + ((now - this.lastDrawTime) * this.animationTimeMultiplier);
-    var visibleThreshold = this.currentDate - this.visibleLifespan;
+    if(!this.isPaused) {
 
-    while(this.lowIndex < this.dataLength) {
-      if(this.data[this.lowIndex][3] >= visibleThreshold)
-        break;
+      var nextDate = this.currentDate + ((now - this.lastDrawTime) * this.animationTimeMultiplier);
+      var visibleThreshold = this.currentDate - this.visibleLifespan;
 
-      this.lowIndex += 1;
+      while(this.lowIndex < this.dataLength) {
+        if(this.data[this.lowIndex][3] >= visibleThreshold)
+          break;
+
+        this.lowIndex += 1;
+      }
+
+      if(this.highIndex < this.lowIndex)
+        this.highIndex = this.lowIndex;
+    
+      while(this.highIndex < this.dataLength) {
+        var crime = this.data[this.highIndex];
+        if(this.data[this.highIndex][3] >= nextDate)
+          break;
+
+        this.highIndex += 1;
+      }
+
+      //increment currentDate to next date
+      this.currentDate = nextDate;
+
+      //if no removals to make then just add the crime points that are between the currentDate and the next Date and aren't filtered
+      var currentData = this.getCurrentHeatmapData(visibleThreshold);
+      this.heatmap.setDataSet(currentData); 
+
+      //update our current progress to match the current date
+      var percentComplete = (this.dateRange.start - this.currentDate) / this.totalTimeRange; 
+      this.progressBar.css('background-position' , 'center ' + (this.progressStart + (percentComplete * this.totalPixelRange)) + 'px');
+
+      console.log('center ' + (this.progressStart + (percentComplete * this.totalPixelRange)) + 'px')
+
+      console.log(currentData.data.length + " frames from " + new Date(nextDate - visibleThreshold) + ' to ' +  new Date(nextDate) + '(' + this.lowIndex + ' - ' + this.highIndex +  ') in ' + (new Date().getTime() - now) + ' milli');
+
     }
-
-    if(this.highIndex < this.lowIndex)
-      this.highIndex = this.lowIndex;
-  
-    while(this.highIndex < this.dataLength) {
-      var crime = this.data[this.highIndex];
-      if(this.data[this.highIndex][3] >= nextDate)
-        break;
-
-      this.highIndex += 1;
-    }
-
-    //increment currentDate to next date
-    this.currentDate = nextDate;    
-
-    //if no removals to make then just add the crime points that are between the currentDate and the next Date and aren't filtered
-    var currentData = this.getCurrentHeatmapData(visibleThreshold);
-    this.heatmap.setDataSet(currentData); 
-
-    console.log(currentData.data.length + " frames from " + new Date(nextDate - visibleThreshold) + ' to ' +  new Date(nextDate) + '(' + this.lowIndex + ' - ' + this.highIndex +  ') in ' + (new Date().getTime() - now) + ' milli');
 
     this.lastDrawTime = now;
 
@@ -162,6 +257,10 @@
     //start the animation
     this.draw();
   }
+
+  CrimeAnimator.prototype.togglePause = function togglePause() {
+    this.isPaused = !this.isPaused;
+  };
 
   CrimeAnimator.prototype.stop = function stop() {
     //stop current timer
@@ -192,15 +291,6 @@
     return {max: 75, data: heatmapData};
   };
 
-  var ProgressBar = {
-    init : function init(dateRange) {
-      //setup the progress bar for our current date range
-    },
-
-    update : function update(currentDate) {
-      //update our current progress
-    }
-  }
 
   !function($){
     $(function(){
@@ -212,12 +302,12 @@
         center: myLatlng,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         disableDefaultUI: true,
-        scrollwheel: false,
-        draggable: false,
-        navigationControl: false,
-        mapTypeControl: false,
-        scaleControl: false,
-        disableDoubleClickZoom: false
+        scrollwheel: true,
+        draggable: true,
+        navigationControl: true,
+        mapTypeControl: true,
+        scaleControl: true,
+        disableDoubleClickZoom: true
       };
       var map = new google.maps.Map($("#heatmapArea")[0], myOptions);
       
@@ -249,9 +339,8 @@
   var crimes = Data.crimes;
   for(var i=crimes.length-1 ; i >= 0 ; i--) {
     var crime = crimes[i];
-    crime[3] = Date.parse(year + '/' + crime[3] + '/' + crime[4] +  ' ' + Math.floor(Math.random()*24) + ':00');
+    crime[3] = Date.parse(year + '/' + (crime[3]+1) + '/' + crime[4] +  ' ' + Math.floor(Math.random()*24) + ':00');
   }
-
 
 </script>
 </body>
