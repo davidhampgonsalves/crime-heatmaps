@@ -10,11 +10,17 @@
       margin:0;
 
       font-family: Arial, san-serif;
-      color:white;
     }
     html, body {
       width: 100%; 
       height: 100%;
+      color:black;
+    }
+
+    h1 {
+      position:fixed;
+      margin: 20px 0 0 20px;
+      z-index:99;
     }
 
     #heatmapArea {
@@ -22,57 +28,81 @@
       width: 100%;
     }
 
+    #progress-bar-background {
+      position:fixed;
+      width:100%;
+      height:3px;
+      left:0;
+      bottom:0;
+      background:white;
+      z-index:98;
+    }
+
+    #progress-bar-container {
+      position:fixed;
+      overflow:visible;
+      width:30%;
+      left:0;
+      bottom:0;
+      z-index:99;
+    }
+
+    #progress-bar-pointer {
+      float:right;
+      position: relative;
+      background:yellow;
+      margin-right: -25px;
+      margin-bottom:20px;
+      padding:10px;
+      text-align:center;
+      
+      cursor: pointer;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    #progress-bar-pointer:after {
+      position: absolute;
+      content: " ";
+      top: 100%;
+      left: 50%;
+      border: solid transparent;
+      border-top-color: yellow;
+      border-width: 15px;
+      margin-left: -15px;
+    }
+
+    #progress-bar-pointer span {
+      font-size:10px;
+      line-height:150%;
+    }
+
     #progress-bar {
       position:absolute;
-      overflow:visible;
-      height:100%;
+      background:#327CCB;
+      width:100%;
       right:0;
-      top:0;
-      z-index:99;
-      display:table;
-
-      background-color:rgb(100,100,100);
-      background-image:url('white.jpg');
-      background-repeat:no-repeat;
+      bottom:0;
+      height:3px;
     }
-
-    #progress-bar div {
-      display:table-row;
-    }
-
-    #progress-bar div:hover {
-      background:rgb(100, 100, 100);
-    }
-
-    #progress-bar div.disabled {
-      background: rgb(200,200,200);
-    }
-
-    #progress-bar span {
-      display:table-cell;
-      vertical-align: middle;
-      text-align:center;
-      background: rgba(255,0,0,0.5);
-      padding: 0 20px;
-    }
+    
   </style>
   </head>
 <body>
 
+<h1>Halifax Crime Heatmap</h1>
 <div id="heatmapArea"></div>
-<div id="progress-bar">
-  <div data-month=1><span>January</span></div>
-  <div data-month=2><span>February</span></div>
-  <div data-month=3><span>March</span></div>
-  <div data-month=4><span>April</span></div>
-  <div data-month=5><span>May</span></div>
-  <div data-month=6><span>June</span></div>
-  <div data-month=7><span>July</span></div>
-  <div data-month=8><span>August</span></div>
-  <div data-month=9><span>September</span></div>
-  <div data-month=10><span>October</span></div>
-  <div data-month=11><span>November</span></div>
-  <div data-month=12><span>December</span></div>
+
+<div id='progress-bar-background'> </div>
+<div id='progress-bar-container'>
+  <div id='progress-bar-pointer-container'> 
+    <div id='progress-bar-pointer'>Sept<br>29<span>th</span></div>
+  </div>
+  <div id='progress-bar'> </div>
 </div>
 
 <script type="text/javascript" src="heatmap.js"></script>
@@ -116,7 +146,7 @@
 
     this.filters = [];
 
-    this.setupProgressBar();
+    //this.setupProgressBar();
   };
 
   CrimeAnimator.prototype.DAY_IN_MILLI = 1000 * 60 * 60 * 24;
@@ -223,9 +253,7 @@
 
       //update our current progress to match the current date
       var percentComplete = (this.dateRange.start - this.currentDate) / this.totalTimeRange; 
-      this.progressBar.css('background-position' , 'center ' + (this.progressStart + (percentComplete * this.totalPixelRange)) + 'px');
-
-      console.log('center ' + (this.progressStart + (percentComplete * this.totalPixelRange)) + 'px')
+      //this.progressBar.css('background-position' , 'center ' + (this.progressStart + (percentComplete * this.totalPixelRange)) + 'px');
 
       console.log(currentData.data.length + " frames from " + new Date(nextDate - visibleThreshold) + ' to ' +  new Date(nextDate) + '(' + this.lowIndex + ' - ' + this.highIndex +  ') in ' + (new Date().getTime() - now) + ' milli');
 
@@ -325,15 +353,30 @@
       google.maps.event.addListenerOnce(map, "idle", function() {
 
           var crimeAnimator = new CrimeAnimator(Data.crimes, heatmap);
-          crimeAnimator.start();
+
+          //setup progress bar slider events
+          var $progressBar = $('#progress-bar-container');
+          var $progressBarPointer = $('#progress-bar-pointer');
+          var $document = $(document);
+          $progressBarPointer.mousedown(function() {
+            crimeAnimator.togglePause();
+            $document.on('mousemove', function(e) {
+              $progressBar.css('width', e.pageX + 'px');
+            });
+          });
+
+          $progressBarPointer.mouseup(function() {
+            crimeAnimator.togglePause();
+            $document.off('mousemove');
+          });
+
+          //crimeAnimator.start();
 
       });
-
     });
   }(window.jQuery)
 
   var Data = <%- JSON.stringify(data) %>;
-  
   //transform and inflate dates from server and create mock times so that each days data is at least somewhat distributed
   var year = Data.year;
   var crimes = Data.crimes;
