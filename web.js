@@ -26,21 +26,26 @@ app.get('/', function(req, res) {
 	serverData.year = null;
 	mongo.Db.connect(mongoUri, function (err, db) {
 	  db.collection('crimes', function(er, collection) {
-		var cursor = collection.find({}).sort({'​date':1});
-		var crimes = [];
-		cursor.each(function(err, crime) {
-			//when our cusor is exhausted then render template
-			if(crime === null) {
-				serverData.crimes = crimes;
-				res.render('index.html', { data: serverData });
-				return;
-			}
-			
-			var crimeDate = new Date(crime.date);
-			if(!serverData.year)
-				serverData.year = crimeDate.getFullYear();
+	  	var crimes = [];
+	  	var crimeTypes = {'THEFT FROM VEHICLE':0, 'BREAK AND ENTER':1};
+		
+		collection.find().sort({"date":1}, function(err, cursor) {
+			cursor.each(function(err, crime) {
+				//when our cusor is exhausted then render template
+				if(crime === null) {
+					serverData.crimes = crimes;
+					res.render('index.html', { data: serverData });
+					return;
+				}
+				
+				var crimeDate = new Date(crime.date);
+				if(!serverData.year)
+					serverData.year = crimeDate.getFullYear();
 
-			crimes.push([crime.latitude, crime.longitude, crime.type, crimeDate.getMonth(), crimeDate.getDate()]);
+				console.log(crimeDate);
+
+				crimes.push([crime.latitude, crime.longitude, crimeTypes[crime.type], crimeDate.getMonth(), crimeDate.getDate()]);
+			});
 		});
 
 	  });
