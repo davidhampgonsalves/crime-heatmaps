@@ -20,14 +20,13 @@ app.configure(function(){
   app.use(express.methodOverride());
 });
 
-
+var crimeTypes = {'THEFT FROM VEHICLE':0, 'THEFT OF VEHICLE': 1, 'BREAK AND ENTER':2, 'ASSAULT': 3, 'ROBBERY': 4};
 app.get('/', function(req, res) {
 	var serverData = {};
 	serverData.year = null;
 	mongo.Db.connect(mongoUri, function (err, db) {
 	  db.collection('crimes', function(er, collection) {
 	  	var crimes = [];
-	  	var crimeTypes = {'THEFT FROM VEHICLE':0, 'BREAK AND ENTER':1};
 		
 		collection.find().sort({"date":1}, function(err, cursor) {
 			cursor.each(function(err, crime) {
@@ -41,8 +40,6 @@ app.get('/', function(req, res) {
 				var crimeDate = new Date(crime.date);
 				if(!serverData.year)
 					serverData.year = crimeDate.getFullYear();
-
-				console.log(crimeDate);
 
 				crimes.push([crime.latitude, crime.longitude, crimeTypes[crime.type], crimeDate.getMonth(), crimeDate.getDate()]);
 			});

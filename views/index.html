@@ -20,12 +20,16 @@
       color:black;
     }
 
-    h1 {
+
+    #header {
       position:fixed;
-      bottom:0;
-      right:0;
-      margin: 160px;
+      bottom:130px;
+      right:160px;
       z-index:99;
+    }
+
+    h1 {
+      float:left;
       font-size:50px;
       text-align: center;
       font-weight:700;
@@ -36,6 +40,38 @@
       display:block;
       font-size: 65px;
       font-weight:300;
+    }
+
+    #animation-control-button {
+      padding:20px;
+      display:inline-block;
+      background:white;
+      margin: 20px 0 0 20px;
+    }
+
+    #animation-control-button:hover {
+      background:grey;
+    }
+
+    #animation-control-button div {
+      width: 30px;
+      height: 60px;
+    }
+
+    #animation-control-button .play { 
+      border: solid transparent;
+      margin-left: 10px;
+      border-width: 30px 0px 30px 50px;
+      border-left-color: black;
+      height:0; 
+      width:0;
+    }
+
+    #animation-control-button .pause {
+      width: 30px;
+      height: 60px;
+      border-left: 15px solid black;
+      border-right: 15px solid black;
     }
 
     #heatmapArea {
@@ -108,12 +144,19 @@
       bottom:0;
       height:3px;
     }
+
     
   </style>
   </head>
 <body>
 
-<h1>Halifax<span>Crime</span></h1>
+<div id='header'>
+  <h1>Halifax<span>Crime</span></h1>
+  <div id='animation-control-button'>
+    <div class='pause'></div>
+  </div>
+</div>
+
 <div id='heatmapArea'></div>
 
 <div id='progress-bar-background'> </div>
@@ -167,6 +210,18 @@
     this.filters = [];
 
     this.setupProgressBar();
+
+    var self = this;
+
+    var $animationControlButton = $('#animation-control-button');
+    $animationControlButton.click(function() {
+      if(self.isPaused)
+        self.resume();
+      else
+        self.pause();
+    });
+
+    this.$animationControl = $animationControlButton.children('div');
   };
 
   CrimeAnimator.prototype.DAY_IN_MILLI = 1000 * 60 * 60 * 24;
@@ -370,11 +425,21 @@
 
   CrimeAnimator.prototype.pause = function pause() {
     console.log('pausing');
+
+    this.$animationControl.removeClass('pause');
+    this.$animationControl.addClass('play');
+
+    //TODO: draw all crime points with data?
+
     this.isPaused = true;
   };
 
   CrimeAnimator.prototype.resume = function resume() {
     console.log('resume');
+
+    this.$animationControl.removeClass('play');
+    this.$animationControl.addClass('pause');
+
     this.isPaused = false;
   };
 
