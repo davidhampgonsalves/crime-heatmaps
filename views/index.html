@@ -171,17 +171,19 @@
 <script type='text/javascript' src='heatmap-gmaps.js'></script>
 <script type='text/javascript'>
 
-  //http://heatmapdemo.alastair.is/js/map/heatmaplayer.js
+ //http://heatmapdemo.alastair.is/js/map/heatmaplayer.js
   //http://eightmedia.github.io/hammer.js/
 
  /*
    * emits events after each animation frame and after animation is complete
   */
-  var CrimeAnimator = function(data, heatmap) { 
+  var CrimeAnimator = function(data, heatmap, map) { 
     
+    this.map = map;
     this.data = data;
     this.heatmap = heatmap;
     this.dataLength = data.length;
+    this.markers = [];
 
     //figure out the date range
     this.dateRange = {start: data[0][3], end: data[data.length-1][3]};
@@ -239,18 +241,18 @@
 
     this.totalTimeRange = this.dateRange.end - this.dateRange.start;   
     this.totalPixelRange = this.progressBarEndPosition - this.progressBarStartPosition;
-    
+
     var self = this;
     var stopPointerDrag = function(e) {
       self.updateCurrentDateToProgressPosition(e.pageX);
       
+      //draw the heatmap frame for our current position
       self.lowIndex = 0; 
       self.highIndex = 0;
+      self.drawFrame(self.currentDate);
 
-      console.log(new Date(self.currentDate));
-      self.resume();
-
-      //TODO: need to draw a frame?
+      self.removeCrimeMarkers();
+      self.addCrimeMarkers();
 
       $document.off('mousemove ontouchmove');
     };
@@ -271,7 +273,7 @@
           return;
         }
 
-        //TODO: can I replace this with a call to updateProgressBar?
+        //impose start/end limits on progres bar
         var x = e.pageX;
         if(x > this.progressBarEndPosition)
           x = this.progressBarEndPosition;
@@ -284,7 +286,8 @@
         self.updateCurrentDateToProgressPosition(x);
         self.updateProgressBarText();
 
-        //TODO: should I be animating crime?
+        //TODO: performance test this
+        //self.drawFrame(self.currentDate);
       });
     });
 
@@ -325,86 +328,57 @@
     this.filters = filters;
   };
 
-  CrimeAnimator.prototype.drawAll = function drawAll() { 
+  CrimeAnimator.prototype.updateIndexPositions = function updateIndexPositions(visibleThreshold, nextDate) {
+    while(this.lowIndex < this.dataLength) {
+      if(this.data[this.lowIndex][3] >= visibleThreshold)
+        break;
 
-    //reset the data indexes
-    this.lowIndex = 0;
-    this.highIndex = this.data.length;
-    this.visibleLifespan = 400; //we never draw more then a year so will display everything
+      this.lowIndex += 1;
+    }
 
-    this.draw();
+    if(this.highIndex < this.lowIndex)
+      this.highIndex = this.lowIndex;
+  
+    while(this.highIndex < this.dataLength) {
+      var crime = this.data[this.highIndex];
+      if(this.data[this.highIndex][3] >= nextDate)
+        break;
+
+      this.highIndex += 1;
+    }
   },
 
-  CrimeAnimator.prototype.drawMonth = function drawMonth(e) {
-    var month = $(e.target).attr('data-month');
+  CrimeAnimator.prototype.drawFrame = function drawFrame(nextDate) {
+      
+      var visibleThreshold = this.currentDate - this.visibleLifespan;
+      this.updateIndexPositions(visibleThreshold, nextDate);
 
-    //set the current date to the first of the month
-    var firstDate = new Date(this.dateRange.start);
-    this.currentDate = new Date(firstDate.getFullYear(), month, 1).getTime();
+      //if no removals to make then just add the crime points that are between the currentDate and the next Date and aren't filtered
+      var currentData = this.getCurrentHeatmapData(this.lowIndex, this.highIndex, visibleThreshold);
+      this.heatmap.setDataSet(currentData); 
 
-    var lastDate = new Date(firstDate.getFullYear(), month + 1, -1);
+  },
 
-    //set the animation day interval to be a month so it displays all at once in a single frame
-    this.visibleLifespan = lastDate.getDate() * DAY_IN_MILLI; //avoid data being hidden
-
-    //reset the data indexes
-    this.lowIndex = 0;
-    this.highIndex = 0;
-
-    //this should draw a single frame
-    this.draw();
-  };
-
-  CrimeAnimator.prototype.draw = function draw() {
+  CrimeAnimator.prototype.animate = function animate() {
     
     var now = new Date().getTime();
 
     if(!this.isPaused) {
-
       var nextDate = this.currentDate + ((now - this.lastDrawTime) * this.animationTimeMultiplier);
-      var visibleThreshold = this.currentDate - this.visibleLifespan;
 
-      while(this.lowIndex < this.dataLength) {
-        if(this.data[this.lowIndex][3] >= visibleThreshold)
-          break;
-
-        this.lowIndex += 1;
-      }
-
-      if(this.highIndex < this.lowIndex)
-        this.highIndex = this.lowIndex;
-    
-      while(this.highIndex < this.dataLength) {
-        var crime = this.data[this.highIndex];
-        if(this.data[this.highIndex][3] >= nextDate)
-          break;
-
-        this.highIndex += 1;
-      }
+      this.drawFrame(nextDate);
 
       //increment currentDate to next date
       this.currentDate = nextDate;
 
-      //if no removals to make then just add the crime points that are between the currentDate and the next Date and aren't filtered
-      var currentData = this.getCurrentHeatmapData(visibleThreshold);
-      this.heatmap.setDataSet(currentData); 
-
       //update our current progress to match the current date
       this.updateProgressBar();
-
-      console.log(currentData.data.length + ' frames from ' + new Date(nextDate - visibleThreshold) + ' to ' +  new Date(nextDate) + '(' + this.lowIndex + ' - ' + this.highIndex +  ') in ' + (new Date().getTime() - now) + ' milli');
-
     }
 
     this.lastDrawTime = now;
 
-    if(this.highIndex >= this.dataLength - 1) {
-      //looks like we are done, fire animation end event
-      this.stop();
-    } else {
-      //fire event for update
-      window.requestAnimationFrame(this.draw.bind(this));
-    }
+    if (this.highIndex < this.dataLength - 1)
+      window.requestAnimationFrame(this.animate.bind(this));
   };
 
   CrimeAnimator.prototype.start = function start(startDate) {
@@ -412,26 +386,39 @@
     if(startDate)
       this.currentDate = startDate;
 
-    //figure out the number of days in our data
-    if(this.dayRange < 10) {
-      //no animation, too little data just draw what we have
-      this.drawAll();
-      return;
-    } 
-
     //start the animation
-    this.draw();
+    this.animate();
   }
 
   CrimeAnimator.prototype.pause = function pause() {
     console.log('pausing');
 
     this.$animationControl.removeClass('pause');
-    this.$animationControl.addClass('play');
+    this.$animationControl.addClass('play');     
 
-    //TODO: draw all crime points with data?
+    this.addCrimeMarkers();
 
     this.isPaused = true;
+  };
+
+
+  CrimeAnimator.prototype.addCrimeMarkers = function addCrimeMarkers() {
+    var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
+    for(var i=currentData.length-1 ; i >= 0 ; i--) {
+      var crime = currentData[i];
+
+      this.markers.push(new google.maps.Marker({
+        position: new google.maps.LatLng(crime[0], crime[1]),
+        map: this.map,
+        title: 'title'
+      }));
+    }
+  };
+
+  CrimeAnimator.prototype.removeCrimeMarkers = function removeCrimeMarkers() {
+    for(var i=this.markers.length-1 ; i >= 0 ; i--) {
+      this.markers.pop().setMap(null);
+    }
   };
 
   CrimeAnimator.prototype.resume = function resume() {
@@ -440,38 +427,33 @@
     this.$animationControl.removeClass('play');
     this.$animationControl.addClass('pause');
 
+    this.removeCrimeMarkers();
+
     this.isPaused = false;
   };
 
-  CrimeAnimator.prototype.stop = function stop() {
-    //stop current timer
-    console.log('stopping!');
-    clearInterval(this.timer);
-  }
-
-  CrimeAnimator.prototype.getCurrentHeatmapData = function getCurrentHeatmapData(visibleThreshold) {
+  CrimeAnimator.prototype.getCurrentHeatmapData = function getCurrentHeatmapData(lowIndex, highIndex, visibleThreshold) {
     var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
     
-    var count, timeFromHighIndex, timeRange, heatmapData = [];
+    var crime, type, count, timeFromHighIndex, timeRange, heatmapData = [];
     var currentTimeRange = this.currentDate - visibleThreshold;
 
     for(var i = currentData.length-1 ; i >= 0 ; i--) {
-      var crime = currentData[i];
-      var type = crime[2];
+      crime = currentData[i];
+      type = crime[2];
 
       if(this.filters.indexOf(type) >= 0)
         continue;
 
       timeFromHighIndex = this.currentDate - crime[3];
       var x = timeFromHighIndex / currentTimeRange;
-      count = 50 * 4 * (x - Math.pow(x, 2));
+      count = 50 * 4 * (x - Math.pow(x, 2)); //exponential curve for fade in/out
                       
       heatmapData.push({lat : crime[0], lng : crime[1], count: count});
     }
 
     return {max: 75, data: heatmapData};
   };
-
 
   !function($){
     $(function(){
@@ -505,12 +487,12 @@
       // this is important, because if you set the data set too early, the latlng/pixel projection doesn't work
       google.maps.event.addListenerOnce(map, 'idle', function() {
 
-          var crimeAnimator = new CrimeAnimator(Data.crimes, heatmap);
-
+          var crimeAnimator = new CrimeAnimator(Data.crimes, heatmap, map);
           crimeAnimator.start();
+
       });
     });
-  }(window.jQuery)
+  }(window.jQuery);
 
   var Data = <%- JSON.stringify(data) %>;
   
