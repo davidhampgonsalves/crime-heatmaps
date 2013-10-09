@@ -18,6 +18,7 @@
       width: 100%; 
       height: 100%;
       color:black;
+      background: #95DB8F;
     }
 
 
@@ -42,36 +43,63 @@
       font-weight:300;
     }
 
+    @media (max-width: 800px) {
+      h1 {
+        font-size:30px;
+      }
+
+      h1 span {
+        font-size: 45px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      h1 {
+        font-size:20px;
+      }
+
+      h1 span {
+        font-size: 35px;
+      }
+    }
+
     #animation-control-button {
-      padding:20px;
+      padding:10px;
       display:inline-block;
-      background:white;
-      margin: 20px 0 0 20px;
+      background:#84CA7F;
+      margin: 30px 0 0 30px;
+
+      -moz-box-shadow: -5px 5px #222;
+      -webkit-box-shadow: -5px 5px #222;
+      box-shadow: -5px 5px #222;
     }
 
     #animation-control-button:hover {
-      background:grey;
+      //margin: 31px 1px -1px 29px;
+      //box-shadow: -4px 4px #222;
+
+      background: #95DB8F;
     }
 
-    #animation-control-button div {
-      width: 30px;
-      height: 60px;
+    #animation-control-button:active {
+      margin: 33px 3px -3px 27px;
+      box-shadow: -2px 2px #222;
     }
 
     #animation-control-button .play { 
       border: solid transparent;
-      margin-left: 10px;
-      border-width: 30px 0px 30px 50px;
+      margin-left: 5px;
+      border-width: 25px 0px 25px 39px;
       border-left-color: black;
       height:0; 
       width:0;
     }
 
     #animation-control-button .pause {
-      width: 30px;
-      height: 60px;
-      border-left: 15px solid black;
-      border-right: 15px solid black;
+      width: 20px;
+      height: 50px;
+      border-left: 12px solid black;
+      border-right: 12px solid black;
     }
 
     #heatmapArea {
@@ -101,7 +129,7 @@
     #progress-bar-pointer {
       float:right;
       position: relative;
-      background:yellow;
+      background:#84CA7F;
       margin-right: -45px;
       margin-bottom:20px;
       padding-top:20px;
@@ -109,8 +137,10 @@
       height:55px;
       width:90px;
 
+      -moz-box-shadow: 0 0 5px 5px rgba(255,255,255, 0.5);
+      -webkit-box-shadow: 0 0 5px 5px rgba(255,255,255, 0.5);
+      box-shadow: 0 0 5px 5px rgba(255,255,255, 0.5);
 
-      
       cursor: pointer;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
@@ -126,7 +156,7 @@
       top: 100%;
       left: 50%;
       border: solid transparent;
-      border-top-color: yellow;
+      border-top-color: #84CA7F;
       border-width: 15px;
       margin-left: -15px;
     }
@@ -145,16 +175,63 @@
       height:3px;
     }
 
-    
+    #controls {
+      position:fixed;
+      top:0;
+      right:0;
+      z-index: 97;
+
+      text-align:right;
+      background:white;
+    }
+
+    li {
+      list-style: none;
+    }
+
+    #years {
+      padding:10px;
+    }
+
+    #controls h3 {
+      padding:10px 10px 0 10px;  
+    }
+
+    #controls li {
+      padding:10px;
+      background:#84CA7F;
+      //display:none;
+    }
+
+    #controls li:nth-child(even) {
+      background: #95DB8F;
+    }
+
+    #controls input {
+      margin:10px;
+    }
+
   </style>
   </head>
 <body>
 
-<div id='header'>
+<div id=header>
   <h1>Halifax<span>Crime</span></h1>
   <div id='animation-control-button'>
     <div class='pause'></div>
   </div>
+</div>
+
+<div id=controls>
+  <div id=years>2013</div>
+  <h3>filters</h3>
+  <ul>
+    <li>Auto Theft<input type='checkbox' name='1'>
+    <li>Theft from Auto<input type='checkbox' name='0'>
+    <li>Break & Enter<input type='checkbox' name='2'>
+    <li>Assult<input type='checkbox' name='3'>
+    <li>Robbery<input type='checkbox' name='4'>
+  </ul>
 </div>
 
 <div id='heatmapArea'></div>
@@ -162,7 +239,7 @@
 <div id='progress-bar-background'> </div>
 <div id='progress-bar-container'>
   <div id='progress-bar-pointer-container'> 
-    <div id='progress-bar-pointer'></div>
+    <div id='progress-bar-pointer' onclick='void(0)'></div>
   </div>
   <div id='progress-bar'> </div>
 </div>
@@ -214,7 +291,6 @@
     this.setupProgressBar();
 
     var self = this;
-
     var $animationControlButton = $('#animation-control-button');
     $animationControlButton.click(function() {
       if(self.isPaused)
@@ -222,6 +298,9 @@
       else
         self.pause();
     });
+
+    //handle the filter click events
+    $('#controls input').on('change', this.changeFilters.bind(this));
 
     this.$animationControl = $animationControlButton.children('div');
   };
@@ -401,6 +480,30 @@
     this.isPaused = true;
   };
 
+  CrimeAnimator.prototype.resume = function resume() {
+    console.log('resume');
+
+    this.$animationControl.removeClass('play');
+    this.$animationControl.addClass('pause');
+
+    this.removeCrimeMarkers();
+
+    this.isPaused = false;
+  };
+
+  CrimeAnimator.prototype.changeFilters = function changeFilters(e) {
+    var checkbox = e.target;
+
+    var filterNumber = Number(checkbox.name);
+    if(checkbox.checked)
+      this.filters.push(filterNumber);
+    else {
+      var index = this.filters.indexOf(filterNumber);
+      if (index > -1)
+       this.filters.splice(index, 1);
+    }
+  };
+
 
   CrimeAnimator.prototype.addCrimeMarkers = function addCrimeMarkers() {
     var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
@@ -419,17 +522,6 @@
     for(var i=this.markers.length-1 ; i >= 0 ; i--) {
       this.markers.pop().setMap(null);
     }
-  };
-
-  CrimeAnimator.prototype.resume = function resume() {
-    console.log('resume');
-
-    this.$animationControl.removeClass('play');
-    this.$animationControl.addClass('pause');
-
-    this.removeCrimeMarkers();
-
-    this.isPaused = false;
   };
 
   CrimeAnimator.prototype.getCurrentHeatmapData = function getCurrentHeatmapData(lowIndex, highIndex, visibleThreshold) {
@@ -494,8 +586,7 @@
     });
   }(window.jQuery);
 
-  var Data = <%- JSON.stringify(data) %>;
-  
+  var Data = <%- JSON.stringify(data) %>;  
   //transform and inflate dates from server and create mock times so that each days data is at least somewhat distributed
   var year = Data.year;
   var crimes = Data.crimes;
@@ -507,6 +598,3 @@
 </script>
 </body>
 </html>
-
-
-
