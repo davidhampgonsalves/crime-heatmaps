@@ -33,6 +33,7 @@ app.get('/', function(req, res) {
 				//when our cusor is exhausted then render template
 				if(crime === null) {
 					serverData.crimes = crimes;
+					serverData.years = [2013];
 					res.render('index.html', { data: serverData });
 					return;
 				}
