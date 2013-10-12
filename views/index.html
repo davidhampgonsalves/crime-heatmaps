@@ -23,23 +23,23 @@
 
 
     #header {
-      position:fixed;
-      bottom:130px;
-      right:160px;
       z-index:99;
+      margin: 20px;
+      position: fixed;
     }
 
     h1 {
-      float:left;
-      font-size:50px;
-      text-align: center;
+      font-size:40px;
       font-weight:700;
+
+      margin-right:15px;
+      
+      display:block;
+      float:left;
     }
 
     h1 span {
-      line-height: 70%;
-      display:block;
-      font-size: 65px;
+      font-size: 50px;
       font-weight:300;
     }
 
@@ -53,7 +53,7 @@
       }
     }
 
-    @media (max-width: 400px) {
+    @media (max-width: 600px) {
       h1 {
         font-size:20px;
       }
@@ -67,9 +67,10 @@
 
     #animation-control-button {
       padding:10px;
-      display:inline-block;
+      display:block;
+      float:left;
+
       background:#84CA7F;
-      margin: 30px 0 0 30px;
 
       -moz-box-shadow: -5px 5px #222;
       -webkit-box-shadow: -5px 5px #222;
@@ -77,14 +78,11 @@
     }
 
     #animation-control-button:hover {
-      //margin: 31px 1px -1px 29px;
-      //box-shadow: -4px 4px #222;
-
       background: #95DB8F;
     }
 
     #animation-control-button:active {
-      margin: 33px 3px -3px 27px;
+      margin: 3px 3px -3px -3px;
       box-shadow: -2px 2px #222;
     }
 
@@ -177,7 +175,21 @@
       height:3px;
     }
 
-    #controls {
+    #years {display:inline-block;}
+
+    #years a, #options a {
+      display:inline-block;
+      text-align:center;
+      padding:10px 0;
+      width:100px;
+
+      text-decoration: none;
+    }
+
+    #years a.current {background:#84CA7F;}
+    #years a:hover {background:#95DB8F;}
+
+    #options {
       position:fixed;
       top:0;
       right:0;
@@ -186,49 +198,39 @@
       text-align:right;
     }
 
-    li {
+
+    #options a {background:white;}
+
+    #options li {
+      float:right;
+      clear:both;
       list-style: none;
+      width:150px;
+
+      margin-right:-200px;
+
+      transition: margin-right .25s ease-in-out;
+      -moz-transition: margin-right .25s ease-in-out;
+      -webkit-transition: margin-right .25s ease-in-out;
     }
 
-    #years a {
-      display:inline-block;
-      padding:10px 20px;
-    }
-
-    #years a.current {
-      background:#84CA7F;
-    }
-
-    #years a:hover {
-      background:#95DB8F;
-    }
-
-    #filters {
-      margin-top:20px;
-      font-size:13px;
-      background:white;
-      display:inline-block;
-    }
-
-    #filters li {
-      display:none;
-    }
-
-    #controls h3 {
-      font-size: 18px;
-      padding:10px 10px 0 10px;  
-    }
-
-    #controls li {
+    #options li {
       padding:10px 13px;
+      font-size: 14px;
       background:#84CA7F;
     }
 
-    #controls li:nth-child(even) {
+    #options li.title {
+      margin-top: 10px;
+      font-size: 16px;
+      background:white;
+    }
+
+    #options li:nth-child(even) {
       background: #95DB8F;
     }
 
-    #controls input {
+    input {
       margin:10px;
     }
 
@@ -242,20 +244,24 @@
     <div class='pause'></div>
   </div>
 </div>
-
-<div id=controls>
+ 
+<div id=options>
   <div id=years></div>
+  <a href='#'>options</a>
 
-  <div id=filters>
-    <h3>filters</h3>
-    <ul>
-      <li>Auto Theft<input type='checkbox' name='1'>
-      <li>Theft from Auto<input type='checkbox' name='0'>
-      <li>Break & Enter<input type='checkbox' name='2'>
-      <li>Assult<input type='checkbox' name='3'>
-      <li>Robbery<input type='checkbox' name='4'>
-    </ul>
-  </div>
+  <ul id=filters>
+    <li class=title>Filters
+    <li><label for='filter-auto-theft'>Auto Theft</label><input id='filter-auto-theft' type='checkbox' name='1'>
+    <li><label for='filter-theft-auto'>Theft from Auto</label><input id='filter-theft-auto' type='checkbox' name='0'>
+    <li><label for='filter-break-enter'>Break & Enter</label><input id='filter-break-enter'type='checkbox' name='2'>
+    <li><label for='filter-assult'>Assult</label><input id='filter-assult' type='checkbox' name='3'>
+    <li><label for='filter-robbery'>Robbery</label><input id='filter-robbery' type='checkbox' name='4'>
+  </ul>
+
+  <ul id=markers>
+    <li class=title>Crime Markers
+    <li><iabel for='options-markers'>Show if Paused</label><input id='options-markers' type='checkbox' name='crime-markers'>
+  </ul>
 </div>
 
 <div id='heatmapArea'></div>
@@ -289,6 +295,7 @@
 
     //create marker array to track displayed markers and the info window that displays when they are clicked
     this.markers = [];
+    this.showMarkers = false;
     this.markerInfoWindow = new google.maps.InfoWindow();
 
     //figure out the date range
@@ -320,7 +327,8 @@
     $animationControlButton.click(this.togglePause.bind(this));
 
     //handle the filter click events
-    $('#controls input').on('change', this.changeFilters.bind(this));
+    $('#filters input').on('change', this.changeFilters.bind(this));
+    $('#options-markers').on('change', this.toggleCrimeMarkers.bind(this));
 
     //hookup spacebar pauser/resume
     $(window).keypress(this.togglePause.bind(this));
@@ -354,7 +362,8 @@
       self.drawFrame(self.currentDate);
 
       self.removeCrimeMarkers();
-      self.addCrimeMarkers();
+      if(self.showMarkers)
+        self.addCrimeMarkers();
 
       $document.off('mousemove ontouchmove');
     };
@@ -387,6 +396,8 @@
         //update progress bar text
         self.updateCurrentDateToProgressPosition(x);
         self.updateProgressBarText();
+
+        self.removeCrimeMarkers();
 
         //in chrome and FF we will animate
         if(!isRunningInIE)
@@ -432,37 +443,14 @@
   };
 
   CrimeAnimator.prototype.updateIndexPositions = function updateIndexPositions(visibleThreshold, nextDate) {
-    /*while(this.lowIndex < this.dataLength) {
-      if(this.data[this.lowIndex][3] >= visibleThreshold)
-        break;
 
-      this.lowIndex += 1;
-    }
-
-    while(this.lowIndex > 0) {
-      if(this.data[this.lowIndex][3] < visibleThreshold)
-        break;
-      this.lowIndex -= 1;
-    }*/
     this.lowIndex = this.getNewIndexPosition(this.lowIndex, visibleThreshold, 0);
 
     if(this.highIndex < this.lowIndex)
       this.highIndex = this.lowIndex;
   
-    /*while(this.highIndex < this.dataLength) {
-      if(this.data[this.highIndex][3] >= nextDate)
-        break;
-
-      this.highIndex += 1;
-    }
-
-    while(this.highIndex > this.lowIndex) {
-      if(this.data[this.highIndex][3] < nextDate)
-        break;
-
-      this.highIndex -= 1;
-    }*/
     this.highIndex = this.getNewIndexPosition(this.highIndex, nextDate, this.lowIndex);
+
   },
 
   /**
@@ -495,7 +483,7 @@
 
       //if no removals to make then just add the crime points that are between the currentDate and the next Date and aren't filtered
       var currentData = this.getCurrentHeatmapData(this.lowIndex, this.highIndex, visibleThreshold);
-      this.heatmap.setDataSet(currentData); 
+      this.heatmap.setDataSet(currentData);
 
   },
 
@@ -552,21 +540,23 @@
     this.$animationControl.removeClass('pause');
     this.$animationControl.addClass('play');     
 
-    this.addCrimeMarkers();
-
     this.isPaused = true;
+
+    //draw markers
+    if(this.showMarkers)
+      this.addCrimeMarkers();
   };
 
   CrimeAnimator.prototype.resume = function resume() {
     console.log('resume');
 
+    this.removeCrimeMarkers();
+
     this.$animationControl.removeClass('play');
     this.$animationControl.addClass('pause');
 
-    this.removeCrimeMarkers();
-
     this.isPaused = false;
-
+      
     //if we are at the end of the animation then restart it
     if (!this.isAnimating)
       this.start();
@@ -592,6 +582,21 @@
     }
   };
 
+  CrimeAnimator.prototype.toggleCrimeMarkers = function toggleCrimeMarkers() {
+    this.showMarkers = !this.showMarkers;
+
+    if(!this.showMarkers)
+      this.removeCrimeMarkers();
+    else if(this.isPaused || !this.isAnimating)
+      this.addCrimeMarkers();
+  };
+
+  //TODO: match pin colors with crimes
+  var pinColor = "FE7569";
+  var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + pinColor,
+      new google.maps.Size(21, 34),
+      new google.maps.Point(0,0),
+      new google.maps.Point(10, 34));
 
   CrimeAnimator.prototype.addCrimeMarkers = function addCrimeMarkers() {
     var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
@@ -602,6 +607,7 @@
       var marker = new google.maps.Marker({
         position: new google.maps.LatLng(crime[0], crime[1]),
         map: this.map,
+        icon: pinImage,
         title: 'title'
       });
 
@@ -672,11 +678,13 @@
           'opacity':60
       });
 
+      var crimeAnimator = new CrimeAnimator(Data.crimes, heatmap, map);
+
       window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || 
                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || 
                               function(fn) {return setTimeout(fn, 1000 / 60);};
 
-      //setup the year links
+      //setup the year links and filters drop down
       $(function() {
         yearsMarkup = [];                    
         for(var i=0, len=Data.years.length ; i < len ; i++) {
@@ -686,19 +694,34 @@
         }
 
         $('#years').html(yearsMarkup.join(''));
+
+        //handle the filter area drop down on click
+        $('#options a').click(function() {
+          var $options = $('#options li');
+          fadeEach($options.toArray(), $options.css('margin-right') === '0px');
+        });
       });
+
+      function fadeEach(options, isFadeIn) {
+        if(options.length <= 0)
+          return;
+
+        options.shift().style.marginRight = isFadeIn ? '-200px' : '0';
+
+        window.setTimeout(fadeEach.bind(undefined, options, isFadeIn), 5);
+      };
 
       // this is important, because if you set the data set too early, the latlng/pixel projection doesn't work
       google.maps.event.addListenerOnce(map, 'idle', function() {
 
-          var crimeAnimator = new CrimeAnimator(Data.crimes, heatmap, map);
-          crimeAnimator.start();
+          window.setTimeout( function() {
+              crimeAnimator.start();
+            }, 300);
 
       });
     });
   }(window.jQuery);
 
-  //var Data = {"year":2013, "years":[2013]};
   var Data = <%- JSON.stringify(data) %>;  
   
   //transform and inflate dates from server and create mock times so that each days data is at least somewhat distributed
@@ -712,4 +735,3 @@
 </script>
 </body>
 </html>
-  
