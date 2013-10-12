@@ -137,10 +137,6 @@
       height:55px;
       width:90px;
 
-      -moz-box-shadow: 0 0 5px 5px rgba(255,255,255, 0.5);
-      -webkit-box-shadow: 0 0 5px 5px rgba(255,255,255, 0.5);
-      box-shadow: 0 0 5px 5px rgba(255,255,255, 0.5);
-
       cursor: pointer;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
@@ -226,13 +222,15 @@
       background:white;
     }
 
-    #options li:nth-child(even) {
-      background: #95DB8F;
-    }
-
     input {
       margin:10px;
     }
+
+    #filters li:nth-child(2)  {background: #69D2E7;}
+    #filters li:nth-child(3) {background: #E0E4CC;}
+    #filters li:nth-child(4) {background: #EAB05E;}
+    #filters li:nth-child(5) {background: #F38630;}
+    #filters li:nth-child(6) {background: #D24858;}
 
   </style>
   </head>
@@ -580,6 +578,13 @@
       if (index > -1)
        this.filters.splice(index, 1);
     }
+
+    if(this.isPaused || !this.isAnimating) {
+      this.drawFrame(this.currentDate);
+      this.removeCrimeMarkers();
+      if(this.showMarkers)
+        this.addCrimeMarkers();
+    }
   };
 
   CrimeAnimator.prototype.toggleCrimeMarkers = function toggleCrimeMarkers() {
@@ -590,13 +595,15 @@
     else if(this.isPaused || !this.isAnimating)
       this.addCrimeMarkers();
   };
-
-  //TODO: match pin colors with crimes
-  var pinColor = "FE7569";
-  var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + pinColor,
+ 
+  function buildPin(color) {
+    return new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + color,
       new google.maps.Size(21, 34),
       new google.maps.Point(0,0),
       new google.maps.Point(10, 34));
+  }
+  var crimeTypes = ['Theft from Auto', 'Auto Theft', 'Break & Enter' ,'Assult' ,'Robbery'];
+  var crimePins = [buildPin('69D2E7'), buildPin('E0E4CC'), buildPin('EAB05E') ,buildPin('F38630') ,buildPin('D24858')];
 
   CrimeAnimator.prototype.addCrimeMarkers = function addCrimeMarkers() {
     var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
@@ -604,22 +611,27 @@
 
     for(var i=currentData.length-1 ; i >= 0 ; i--) {
       var crime = currentData[i];
+      var crimeType = crime[2];
+
+      if(this.filters.indexOf(crimeType) >= 0)
+        continue;
+
       var marker = new google.maps.Marker({
         position: new google.maps.LatLng(crime[0], crime[1]),
         map: this.map,
-        icon: pinImage,
-        title: 'title'
+        icon: crimePins[crimeType],
+        title: crimeTypes[crimeType]
       });
 
       this.markers.push(marker);
 
       //setup the markers onclick event to display the popup window
-      function setupMarkerInfoWindow(marker, crime) {
+      /*function setupMarkerInfoWindow(marker, crime) {
         google.maps.event.addListener(marker, 'click', function() {
           self.markerInfoWindow.content = 'type: ' + crime[2] + '<br>date: ' + Date.parse(year + '/' + (crime[3]+1) + '/' + crime[4]);
           self.markerInfoWindow.open(self.map, marker);
         });
-      }(marker, crime);
+      }(marker, crime);*/
     }
   };
 
