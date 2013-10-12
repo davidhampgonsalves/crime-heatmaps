@@ -226,8 +226,8 @@
       margin:10px;
     }
 
-    #filters li:nth-child(2)  {background: #69D2E7;}
-    #filters li:nth-child(3) {background: #E0E4CC;}
+    #filters li:nth-child(2)  {background: #E0E4CC;}
+    #filters li:nth-child(3) {background: #69D2E7;}
     #filters li:nth-child(4) {background: #EAB05E;}
     #filters li:nth-child(5) {background: #F38630;}
     #filters li:nth-child(6) {background: #D24858;}
@@ -327,6 +327,11 @@
     //handle the filter click events
     $('#filters input').on('change', this.changeFilters.bind(this));
     $('#options-markers').on('change', this.toggleCrimeMarkers.bind(this));
+    //handle the filter area drop down on click
+    $('#options a').click(function() {
+      var $options = $('#options li');
+      self.fadeEachOption($options.toArray(), $options.css('margin-right') === '0px');
+    });
 
     //hookup spacebar pauser/resume
     $(window).keypress(this.togglePause.bind(this));
@@ -567,6 +572,16 @@
       this.pause();
   };
 
+  CrimeAnimator.prototype.fadeEachOption = function fadeEachOption(options, isFadeIn) {
+    if(options.length <= 0)
+      return;
+
+    options.shift().style.marginRight = isFadeIn ? '-200px' : '0';
+
+    //adjust the wait time depending on if we are animating(which slows everything down)
+    window.setTimeout(this.fadeEachOption.bind(this, options, isFadeIn), this.isPaused || !this.isAnimating ? 30 : 0);
+  };
+
   CrimeAnimator.prototype.changeFilters = function changeFilters(e) {
     var checkbox = e.target;
 
@@ -706,22 +721,7 @@
         }
 
         $('#years').html(yearsMarkup.join(''));
-
-        //handle the filter area drop down on click
-        $('#options a').click(function() {
-          var $options = $('#options li');
-          fadeEach($options.toArray(), $options.css('margin-right') === '0px');
-        });
       });
-
-      function fadeEach(options, isFadeIn) {
-        if(options.length <= 0)
-          return;
-
-        options.shift().style.marginRight = isFadeIn ? '-200px' : '0';
-
-        window.setTimeout(fadeEach.bind(undefined, options, isFadeIn), 5);
-      };
 
       // this is important, because if you set the data set too early, the latlng/pixel projection doesn't work
       google.maps.event.addListenerOnce(map, 'idle', function() {
