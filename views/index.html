@@ -695,7 +695,11 @@
         mapTypeControl: true,
         scaleControl: true,
         disableDoubleClickZoom: true,
-        styles: [{"stylers": [{ "saturation": -28 }]}]
+        styles: [{ "stylers": [
+          { "saturation": -26 },
+          { "lightness": 18 },
+          { "visibility": "on" }
+        ]}]
       };
       var map = new google.maps.Map($('#heatmapArea')[0], myOptions);     
       

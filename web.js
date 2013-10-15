@@ -28,7 +28,7 @@ app.get('/', function(req, res) {
 	  db.collection('crimes', function(er, collection) {
 	  	var crimes = [];
 		
-		collection.find().sort({"date":1}, function(err, cursor) {
+		collection.find().batchSize(1000).sort({"date":1}, function(err, cursor) {
 			cursor.each(function(err, crime) {
 				//when our cusor is exhausted then render template
 				if(crime === null) {
