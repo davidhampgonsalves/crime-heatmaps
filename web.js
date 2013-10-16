@@ -14,6 +14,8 @@ app.configure(function(){
 
   app.use(express.static(path.join(__dirname, 'js')));
   app.use(express.static(path.join(__dirname, 'img')));
+  app.use(express.favicon(__dirname + '/images/favicon.ico'));
+
   app.use(express.logger());
 
   app.use(express.bodyParser());
@@ -28,7 +30,7 @@ app.get('/', function(req, res) {
 	  db.collection('crimes', function(er, collection) {
 	  	var crimes = [];
 		
-		collection.find().batchSize(1000).sort({"date":1}, function(err, cursor) {
+		collection.find().sort({"date":1}, function(err, cursor) {
 			cursor.each(function(err, crime) {
 				//when our cusor is exhausted then render template
 				if(crime === null) {
