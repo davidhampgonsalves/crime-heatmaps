@@ -65,10 +65,12 @@
       #filters {display:none;}
     }
 
-    #animation-control-button {
+    .button {
+      text-decoration:none;
+      color:black;
+
       padding:10px;
       display:block;
-      float:left;
 
       background:#87D69B;
 
@@ -77,13 +79,17 @@
       box-shadow: -5px 5px #222;
     }
 
-    #animation-control-button:hover {
+    .button:hover {
       background: #95DB8F;
     }
 
-    #animation-control-button:active {
+    .button:active {
       margin: 3px 3px -3px -3px;
       box-shadow: -2px 2px #222;
+    }
+
+    #animation-control-button {
+      float:left;
     }
 
     #animation-control-button .play { 
@@ -232,13 +238,142 @@
     #filters li:nth-child(5) {background: #FAE07E;}
     #filters li:nth-child(6) {background: #E5F9A6;}
 
+    #first-time-user-message {
+      background:#FFF;
+      position:fixed;
+      z-index: 99;
+      
+      width:700px;
+
+      padding:40px;
+
+      top: 50%;
+      left: 50%;
+      margin-top: -250px;
+      margin-left: -350px;
+
+      line-height: 160%;
+
+      text-align:center;
+
+      //display:none;
+    }
+
+    //.mobile-only-content {display:none;}
+
+    #first-time-user-message h2 {
+      text-align:left;
+    }
+
+    #first-time-user-message p {
+      margin:20px 0 30px 0;
+      text-align:left;
+    }
+
+    #first-time-user-message .mobile-only-content {
+      margin-top:40px;
+      margin-bottom:15px;
+      padding:15px;
+      text-align:left;
+    }
+
+    #first-time-user-message .footer {
+      margin:40px 0 0px 0;
+      text-align:center;
+      text-weight:800;
+    }
+
+    #first-time-user-message .footer a {
+      text-decoration:none;
+      font-weight:800;
+      color:#333;
+    }
+
+    #first-time-user-message .footer a:hover {
+      color: #95DB8F;
+    }
+
+    a.button {
+      display:inline-block;
+      font-size:20px;
+      padding:15px;
+    }
+
+    #mobile-icon {
+      width:40px;
+      height:60px;
+      background-color: #000;
+
+      border-radius:4px;
+      -webkit-border-radius:4px;
+      -moz-border-radius: 4px;
+      
+      position:relative;
+      float:left;
+      margin:0px 20px;
+      margin-top: -10px;
+    }
+
+    #mobile-icon div {
+      background:#FFF;
+      position:absolute;
+    }
+
+    #mobile-icon .line {
+      width:14px;
+      height:1px;
+      top:6px;
+      left: 13px;
+    }
+
+    #mobile-icon .screen {
+      width: 34px;
+      height: 37px;
+      top:10px;
+      left:3px;
+    }
+
+    #mobile-icon .dot {
+      width: 4px;
+      height: 4px;
+      bottom:5px;
+      left:18px;
+
+      border-radius:4px;
+      -webkit-border-radius:4px;
+      -moz-border-radius: 4px;
+    }
+
   </style>
   </head>
 <body>
 
+
+<div id='first-time-user-message'>
+  <h2>Welcome to Halifax Crime Maps</h2>
+  <p>
+     Get the inside scoop on the crime that darkens our Halifax streets. Watch as crime hotspots form and disapate. Filter by crime type, drag the progress bar to control the animation, or enable the crime markers and dig deep into the underworld. 
+
+     Keep tabs on halifax criminal element and stay safe. As the Halifax police publish new data the animation grows.
+  </p>
+
+  <div class='mobile-only-content'>
+    <div id='mobile-icon'>
+      <div class='line'></div>
+      <div class='screen'></div>
+      <div class='dot'></div>
+     </div>
+    We can only pack so much awesome into your mobile device, visit on a computer for the full effect.
+  </div>
+
+  <a href='#' id='first-time-user-start' class=button>Lets Roll</a>
+
+  <p class='footer'>Powered by <a href='https://www.halifaxopendata.ca/'>OpenDataHalifax</a></p>
+</div>
+
 <div id=header>
   <h1>Halifax<span>Crime</span></h1>
-  <div id='animation-control-button'>
+  <div id='animation-control-button' class=button>
     <div class='pause'></div>
   </div>
 </div>
@@ -280,6 +415,7 @@
   //http://eightmedia.github.io/hammer.js/
 
   var isRunningInIE = navigator.userAgent.toLowerCase().indexOf('msie') >= 0;
+  var isMobile = true;
 
  /*
    * emits events after each animation frame and after animation is complete
@@ -379,7 +515,7 @@
     });
 
     //setup dragability of progress bar pointer
-    $progressBarPointer.on('mousedown ontouchstart', function() {
+    $progressBarPointer.on('mousedown ontouchstart', function(e) {
       self.pause.apply(self);
 
       $document.on('mousemove ontouchmove', function(e) {
@@ -700,7 +836,7 @@
         scaleControl: true,
         disableDoubleClickZoom: true,
         styles: [{ "stylers": [
-          { "saturation": -26 },
+          { "saturation": -26 },  
           { "lightness": 18 },
           { "visibility": "on" }
         ]}]
@@ -721,25 +857,44 @@
                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || 
                               function(fn) {return setTimeout(fn, 1000 / 60);};
 
-      //setup the year links and filters drop down
-      $(function() {
-        yearsMarkup = [];                    
-        for(var i=0, len=Data.years.length ; i < len ; i++) {
-          var year = Data.years[i];
-          var isCurrent = Data.year === year;
-          yearsMarkup.push('<a href="' + (isCurrent ? '#' : '/' + year) + '"' + (isCurrent ? ' class=current' : '') + '>' + year + '</a>');
-        }
+        localStorage.removeItem('isReturningUser');
+      if(!localStorage.getItem('isReturningUser')) {
+        //show message box
+        $('#first-time-user-message').show();
 
-        $('#years').html(yearsMarkup.join(''));
-      });
+        if(isMobile)
+          $('.mobile-only-content').show();
+
+        $('#first-time-user-start').click(function(e) {
+          $('#first-time-user-message').hide();
+          crimeAnimator.start();
+          e.preventDefault();
+        });
+      }
+
+      //setup the year links and filters drop down  
+      var yearsMarkup = [];                    
+      for(var i=0, len=Data.years.length ; i < len ; i++) {
+        var year = Data.years[i];
+        var isCurrent = Data.year === year;
+        yearsMarkup.push('<a href="' + (isCurrent ? '#' : '/' + year) + '"' + (isCurrent ? ' class=current' : '') + '>' + year + '</a>');
+      }
+
+      $('#years').html(yearsMarkup.join(''));    
+    
 
       // this is important, because if you set the data set too early, the latlng/pixel projection doesn't work
       google.maps.event.addListenerOnce(map, 'idle', function() {
-
+        
+        //prevent animation start for first time user
+        if(localStorage.getItem('isReturningUser') === 'true') {
+        
           window.setTimeout( function() {
               crimeAnimator.start();
             }, 300);
 
+        } else
+          localStorage.setItem('isReturningUser', 'true');
       });
     });
   }(window.jQuery);
