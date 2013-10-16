@@ -70,7 +70,7 @@
       display:block;
       float:left;
 
-      background:#84CA7F;
+      background:#87D69B;
 
       -moz-box-shadow: -5px 5px #222;
       -webkit-box-shadow: -5px 5px #222;
@@ -129,7 +129,7 @@
     #progress-bar-pointer {
       float:right;
       position: relative;
-      background:#84CA7F;
+      background:#87D69B;
       margin-right: -45px;
       margin-bottom:20px;
       padding-top:20px;
@@ -152,7 +152,7 @@
       top: 100%;
       left: 50%;
       border: solid transparent;
-      border-top-color: #84CA7F;
+      border-top-color: #87D69B;
       border-width: 15px;
       margin-left: -15px;
     }
@@ -182,8 +182,8 @@
       text-decoration: none;
     }
 
-    #years a.current {background:#84CA7F;}
-    #years a:hover {background:#95DB8F;}
+    #years a.current {background:#BFEADD;}
+    #years a:hover {background:#BFEADD;}
 
     #options {
       position:fixed;
@@ -213,7 +213,7 @@
     #options li {
       padding:10px 13px;
       font-size: 14px;
-      background:#84CA7F;
+      background:#BFEADD;
     }
 
     #options li.title {
@@ -226,11 +226,11 @@
       margin:10px;
     }
 
-    #filters li:nth-child(2)  {background: #E0E4CC;}
-    #filters li:nth-child(3) {background: #69D2E7;}
-    #filters li:nth-child(4) {background: #EAB05E;}
-    #filters li:nth-child(5) {background: #F38630;}
-    #filters li:nth-child(6) {background: #D24858;}
+    #filters li:nth-child(2)  {background: #A1CDFB;}
+    #filters li:nth-child(3) {background: #BFEADD;}
+    #filters li:nth-child(4) {background: #C4B0DD;}
+    #filters li:nth-child(5) {background: #FAE07E;}
+    #filters li:nth-child(6) {background: #E5F9A6;}
 
   </style>
   </head>
@@ -258,7 +258,7 @@
 
   <ul id=markers>
     <li class=title>Crime Markers
-    <li><label for='options-markers'>Show if Paused</label><input id='options-markers' type='checkbox' name='crime-markers'>
+    <li><label for='options-markers'>Show on Pause</label><input id='options-markers' type='checkbox' name='crime-markers'>
   </ul>
 </div>
 
@@ -369,6 +369,7 @@
         self.addCrimeMarkers();
 
       $document.off('mousemove ontouchmove');
+      e.preventDefault();
     };
 
     //keep track of the top of the progres bar so that we can stop dragging when the mouse leaves the top 
@@ -405,7 +406,11 @@
         //in chrome and FF we will animate
         if(!isRunningInIE)
           self.drawFrame(self.currentDate);
+
+        e.preventDefault();
       });
+
+      e.preventDefault();
     });
 
     //stop dragging 
@@ -618,8 +623,7 @@
       new google.maps.Point(10, 34));
   }
   var crimeTypes = ['Theft from Auto', 'Auto Theft', 'Break & Enter' ,'Assult' ,'Robbery'];
-  var crimePins = [buildPin('69D2E7'), buildPin('E0E4CC'), buildPin('EAB05E') ,buildPin('F38630') ,buildPin('D24858')];
-
+  var crimePins = [buildPin('BFEADD'), buildPin('A1CDFB'), buildPin('C4B0DD') ,buildPin('FAE07E') ,buildPin('E5F9A6')];
   CrimeAnimator.prototype.addCrimeMarkers = function addCrimeMarkers() {
     var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
     var self = this;
@@ -706,7 +710,9 @@
       var heatmap = new HeatmapOverlay(map, {
           'radius':30,
           'visible':true, 
-          'opacity':60
+          'opacity':40//,
+          //'gradient': { 0.45: "rgb(0,0,255)", 0.55: "rgb(0,255,255)", 0.65: "rgb(0,255,0)", 0.95: "yellow", 1.0: "rgb(255,0,0)"}
+          
       });
 
       var crimeAnimator = new CrimeAnimator(Data.crimes, heatmap, map);
