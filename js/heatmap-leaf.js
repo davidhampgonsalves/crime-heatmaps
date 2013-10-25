@@ -6,6 +6,8 @@
  * and the Beerware (http://en.wikipedia.org/wiki/Beerware) license.
  */
 
+
+
 (function(w){
     // the heatmapFactory creates heatmap instances
     var heatmapFactory = (function(){
@@ -89,9 +91,10 @@
                     }
                 }
             }else{
-                while(dlen--){
+                heatmap.drawAlphas(d)
+                 while(dlen--){
                     var point = d[dlen];
-                    heatmap.drawAlpha(point.x, point.y, point.count, false);
+                    //heatmap.drawAlpha(point.x, point.y, point.count, false);
                     if(!data[point.x])
                         data[point.x] = [];
 
@@ -99,9 +102,11 @@
                         data[point.x][point.y] = 0;
 
                     data[point.x][point.y] = point.count;
+
                 }
+                heatmap.colorize();
             }
-            heatmap.colorize();
+            
             this.set("data", d);
         },
         exportDataSet: function(){
@@ -139,154 +144,7 @@
         }
     };
 
-    var legend = function legend(config){
-        this.config = config;
-
-        var _ = {
-            element: null,
-            labelsEl: null,
-            gradientCfg: null,
-            ctx: null
-        };
-        this.get = function(key){
-            return _[key];
-        };
-        this.set = function(key, value){
-            _[key] = value;
-        };
-        this.init();
-    };
-    legend.prototype = {
-        init: function(){
-            var me = this,
-                config = me.config,
-                title = config.title || "Legend",
-                position = config.position,
-                offset = config.offset || 10,
-                gconfig = config.gradient,
-                labelsEl = document.createElement("ul"),
-                labelsHtml = "",
-                grad, element, gradient, positionCss = "";
- 
-            me.processGradientObject();
-            
-            // Positioning
-
-            // top or bottom
-            if(position.indexOf('t') > -1){
-                positionCss += 'top:'+offset+'px;';
-            }else{
-                positionCss += 'bottom:'+offset+'px;';
-            }
-
-            // left or right
-            if(position.indexOf('l') > -1){
-                positionCss += 'left:'+offset+'px;';
-            }else{
-                positionCss += 'right:'+offset+'px;';
-            }
-
-            element = document.createElement("div");
-            element.style.cssText = "border-radius:5px;position:absolute;"+positionCss+"font-family:Helvetica; width:256px;z-index:95; background:rgba(255,255,255,1);padding:10px;border:1px solid black;margin:0;";
-            element.innerHTML = "<h3 style='padding:0;margin:0;text-align:center;font-size:16px;'>"+title+"</h3>";
-            // create gradient in canvas
-            labelsEl.style.cssText = "position:relative;font-size:12px;display:block;list-style:none;list-style-type:none;margin:0;height:15px;";
-            
-
-            // create gradient element
-            gradient = document.createElement("div");
-            gradient.style.cssText = ["position:relative;display:block;width:256px;height:15px;border-bottom:1px solid black; background-image:url(",me.createGradientImage(),");"].join("");
-
-            element.appendChild(labelsEl);
-            element.appendChild(gradient);
-            
-            me.set("element", element);
-            me.set("labelsEl", labelsEl);
-
-            me.update(1);
-        },
-        processGradientObject: function(){
-            // create array and sort it
-            var me = this,
-                gradientConfig = this.config.gradient,
-                gradientArr = [];
-
-            for(var key in gradientConfig){
-                if(gradientConfig.hasOwnProperty(key)){
-                    gradientArr.push({ stop: key, value: gradientConfig[key] });
-                }
-            }
-            gradientArr.sort(function(a, b){
-                return (a.stop - b.stop);
-            });
-            gradientArr.unshift({ stop: 0, value: 'rgba(0,0,0,0)' });
-
-            me.set("gradientArr", gradientArr);
-        },
-        createGradientImage: function(){
-            var me = this,
-                gradArr = me.get("gradientArr"),
-                length = gradArr.length,
-                canvas = document.createElement("canvas"),
-                ctx = canvas.getContext("2d"),
-                grad;
-            // the gradient in the legend including the ticks will be 256x15px
-            canvas.width = "256";
-            canvas.height = "15";
-
-            grad = ctx.createLinearGradient(0,5,256,10);
-
-            for(var i = 0; i < length; i++){
-                grad.addColorStop(1/(length-1) * i, gradArr[i].value);
-            }
-
-            ctx.fillStyle = grad;
-            ctx.fillRect(0,5,256,10);
-            ctx.strokeStyle = "black";
-            ctx.beginPath();
- 
-            for(var i = 0; i < length; i++){
-                ctx.moveTo(((1/(length-1)*i*256) >> 0)+.5, 0);
-                ctx.lineTo(((1/(length-1)*i*256) >> 0)+.5, (i==0)?15:5);
-            }
-            ctx.moveTo(255.5, 0);
-            ctx.lineTo(255.5, 15);
-            ctx.moveTo(255.5, 4.5);
-            ctx.lineTo(0, 4.5);
-            
-            ctx.stroke();
-
-            // we re-use the context for measuring the legends label widths
-            me.set("ctx", ctx);
-
-            return canvas.toDataURL();
-        },
-        getElement: function(){
-            return this.get("element");
-        },
-        update: function(max){
-            var me = this,
-                gradient = me.get("gradientArr"),
-                ctx = me.get("ctx"),
-                labels = me.get("labelsEl"),
-                labelText, labelsHtml = "", offset;
-
-            for(var i = 0; i < gradient.length; i++){
-
-                labelText = max*gradient[i].stop >> 0;
-                offset = (ctx.measureText(labelText).width/2) >> 0;
-
-                if(i == 0){
-                    offset = 0;
-                }
-                if(i == gradient.length-1){
-                    offset *= 2;
-                }
-                labelsHtml += '<li style="position:absolute;left:'+(((((1/(gradient.length-1)*i*256) || 0)) >> 0)-offset+.5)+'px">'+labelText+'</li>';
-            }       
-            labels.innerHTML = labelsHtml;
-        }
-    };
+  
 
     // heatmap object constructor
     var heatmap = function heatmap(config){
@@ -354,23 +212,28 @@
                 
         },
         resize: function () {
-                var me = this,
-                    element = me.get("element"),
-                    canvas = me.get("canvas"),
-                    acanvas = me.get("acanvas");
-                canvas.width = acanvas.width = me.get("width") || element.style.width.replace(/px/, "") || me.getWidth(element);
+
+                var element = this.get("element"),
+                    canvas = this.get("canvas"),
+                    acanvas = this.get("acanvas");
+                acanvas.width = canvas.width
+                acanvas.height = canvas.height
                 this.set("width", canvas.width);
-                canvas.height = acanvas.height = me.get("height") || element.style.height.replace(/px/, "") || me.getHeight(element);
+                this.set("height", canvas.height);
+                return;
+                canvas.width = acanvas.width = element.style.width.replace(/px/, "") || this.getWidth(element);
+                this.set("width", canvas.width);
+                canvas.height = acanvas.height = element.style.height.replace(/px/, "") || this.getHeight(element);
                 this.set("height", canvas.height);
         },
 
         init: function(){
                 var me = this,
-                    canvas = document.createElement("canvas"),
+                    element = me.get("element")
+                    canvas = element.tagName.toLowerCase() == "canvas" ? element : document.createElement("canvas"),
                     acanvas = document.createElement("canvas"),
                     ctx = canvas.getContext("2d"),
-                    actx = acanvas.getContext("2d"),
-                    element = me.get("element");
+                    actx = acanvas.getContext("2d");
 
                 
                 me.initColorPalette();
@@ -381,12 +244,12 @@
                 me.set("actx", actx);
 
                 me.resize();
-                canvas.style.cssText = acanvas.style.cssText = "position:absolute;top:0;left:0;z-index:95;";
+                //canvas.style.cssText = acanvas.style.cssText = "position:absolute;top:0;left:0;z-index:10000000;";
                 
                 if(!me.get("visible"))
                     canvas.style.display = "none";
-
-                element.appendChild(canvas);
+                if(element != canvas)
+                    element.appendChild(canvas);
                 if(me.get("legend")){
                     element.appendChild(me.get("legend").getElement());
                 }
@@ -395,9 +258,9 @@
                 if(me.get("debug"))
                     document.body.appendChild(acanvas);
                 
-                actx.shadowOffsetX = 15000; 
-                actx.shadowOffsetY = 15000; 
-                actx.shadowBlur = 15;
+                actx.shadowOffsetX = 1000; 
+                actx.shadowOffsetY = 1000; 
+                actx.shadowBlur = 15; 
         },
         initColorPalette: function(){
 
@@ -429,6 +292,27 @@
             ctx.fillRect(0,0,1,256);
 
             me.set("gradient", ctx.getImageData(0,0,1,256).data);
+
+            var radius = me.get("radius"), shadowBlur = 15;
+            blobcanvas = document.createElement("canvas");
+            blobcanvas.width = blobcanvas.height = radius+(shadowBlur*2);
+            bctx = blobcanvas.getContext("2d")
+
+            
+
+            bctx.shadowOffsetX = 1000;
+            bctx.shadowOffsetY = 1000;
+            bctx.shadowBlur = shadowBlur;
+            bctx.shadowColor = 'rgba(0,0,0,1)'
+            //console.log(points)
+            bctx.beginPath();
+            bctx.arc((blobcanvas.width/2) - 1000, (blobcanvas.width/2) - 1000, radius, 0, Math.PI * 2, true);
+            bctx.closePath();
+            bctx.fill();
+            $("body").append(blobcanvas)
+            me.set("blobcanvas",blobcanvas)
+
+
         },
         getWidth: function(element){
             var width = element.offsetWidth;
@@ -453,6 +337,7 @@
             return height;
         },
         colorize: function(x, y){
+                var colorStart = new Date().valueOf();
                 // get the private variables
                 var me = this,
                     width = me.get("width"),
@@ -508,8 +393,11 @@
                         bottom = bounds['b'];
                     }    
                 }
-
+                if (bottom-top == 0 || right-left == 0) return;
+                //left = 0;top=0;right=256;bottom=256;
+                //console.log(left,top,right,bottom)
                 image = actx.getImageData(left, top, right-left, bottom-top);
+                //image = actx.getImageData(0, 0, 256, 256);
                 imageData = image.data;
                 length = imageData.length;
                 // loop thru the area
@@ -530,11 +418,11 @@
                     imageData[i-1]=palette[offset+2];
                     
                     if (premultiplyAlpha) {
-                    	// To fix browsers that premultiply incorrectly, we'll pass in a value scaled
-                    	// appropriately so when the multiplication happens the correct value will result.
-                    	imageData[i-3] /= 255/finalAlpha;
-                    	imageData[i-2] /= 255/finalAlpha;
-                    	imageData[i-1] /= 255/finalAlpha;
+                        // To fix browsers that premultiply incorrectly, we'll pass in a value scaled
+                        // appropriately so when the multiplication happens the correct value will result.
+                        imageData[i-3] /= 255/finalAlpha;
+                        imageData[i-2] /= 255/finalAlpha;
+                        imageData[i-1] /= 255/finalAlpha;
                     }
                     
                     // we want the heatmap to have a gradient from transparent to the colors
@@ -546,31 +434,41 @@
                 image.data = imageData;
                 ctx.putImageData(image, left, top);
         },
-        drawAlpha: function(x, y, count, colorize){
-                // storing the variables because they will be often used
+        drawAlphas: function(points, colorize){
+                 // storing the variables because they will be often used
                 var me = this,
                     radius = me.get("radius"),
                     ctx = me.get("actx"),
                     max = me.get("max"),
-                    bounds = me.get("bounds"),
-                    xb = x - (1.5 * radius) >> 0, yb = y - (1.5 * radius) >> 0,
-                    xc = x + (1.5 * radius) >> 0, yc = y + (1.5 * radius) >> 0;
+                    bounds = me.get("bounds")
+                    //xb = x - (1.5 * radius) >> 0, yb = y - (1.5 * radius) >> 0,
+                    //xc = x + (1.5 * radius) >> 0, yc = y + (1.5 * radius) >> 0;
+                    blob = me.get("blobcanvas");
+                ctx.shadowOffsetX = 1000;
+                ctx.shadowOffsetY = 1000;
+                ctx.shadowBlur = 15;
+                //console.log(points)
+                for (var i = 0;i<points.length;i++) {
+                    var point = points[i]
+                    var x = point.x, y = point.y, count = point.count,
+                        xb = x - (1.5 * radius) >> 0, yb = y - (1.5 * radius) >> 0,
+                        xc = x + (1.5 * radius) >> 0, yc = y + (1.5 * radius) >> 0;
+                    /*ctx.shadowColor = ('rgba(255,0,0,'+((count)?(count/me.store.max):'0.1')+')');
+                    ctx.beginPath();
+                    ctx.arc(x - 1000, y - 1000, radius, 0, Math.PI * 2, true);
+                    ctx.closePath();
+                    ctx.fill();*/
 
-                ctx.shadowColor = ('rgba(0,0,0,'+((count)?(count/me.store.max):'0.1')+')');
+                    offset = blob.width / 2
+                    test = (count/me.store.max)
+                    if (test < 0 || test > 1) {
+                        //console.log (count,me.store.max,test)
+                        test = 1
+                    }
+                    ctx.globalAlpha = ((count)?(test):0.1)
+                    ctx.drawImage(blob,x-offset,y-offset)
 
-                ctx.shadowOffsetX = 15000; 
-                ctx.shadowOffsetY = 15000; 
-                ctx.shadowBlur = 15; 
 
-                ctx.beginPath();
-                ctx.arc(x - 15000, y - 15000, radius, 0, Math.PI * 2, true);
-                ctx.closePath();
-                ctx.fill();
-                if(colorize){
-                    // finally colorize the area
-                    me.colorize(xb,yb);
-                }else{
-                    // or update the boundaries for the area that then should be colorized
                     if(xb < bounds["l"]){
                         bounds["l"] = xb;
                     }
@@ -583,6 +481,14 @@
                     if(yc > bounds['b']){
                         bounds['b'] = yc;
                     }
+
+                }
+                if(colorize){
+                    // finally colorize the area
+                    me.colorize(xb,yb);
+                }else{
+                    // or update the boundaries for the area that then should be colorized
+                    /*i*/
                 }
         },
         toggleDisplay: function(){
@@ -614,8 +520,6 @@
         },
         cleanup: function(){
             var me = this;
-            console.log(me.get("element"));
-            console.log(me.get("canvas"));
             me.get("element").removeChild(me.get("canvas"));
         }
     };

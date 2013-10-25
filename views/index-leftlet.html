@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html lang='en'>
 <head>
-  <script type='text/javascript' src='http://maps.google.com/maps/api/js?sensor=false'></script>
   <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+  <!--[if lte IE 8]>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" />
+  <![endif]-->
+
+  <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
 
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:700,300' rel='stylesheet' type='text/css'>
 
@@ -407,25 +412,23 @@
   <div id='progress-bar'> </div>
 </div>
 
-<script type='text/javascript' src='heatmap.js'></script>
-<script type='text/javascript' src='heatmap-gmaps.js'></script>
+<script type='text/javascript' src='./heatmap.js'></script>
+<script type="text/javascript" src="./heatmap-leaflet.js"></script>
+<script type="text/javascript" src="./QuadTree.js"></script>
 <script type='text/javascript'>
 
   //http://heatmapdemo.alastair.is/js/map/heatmaplayer.js
   //http://eightmedia.github.io/hammer.js/
 
   var isRunningInIE = navigator.userAgent.toLowerCase().indexOf('msie') >= 0;
-  var isMobile = typeof window.orientation !== 'undefined' && !navigator.userAgent.match(/iPad/i);
-
-  if(isRunningInIE ? parseInt(navigator.userAgent.toLowerCase().split('msie')[1]) < 8 : false)
-    alert('Sorry friend,\n but that browser is too old to learn new tricks,\n try Firefox, you will like it.');
+  var isMobile = true;
 
  /*
    * emits events after each animation frame and after animation is complete
   */
-  var CrimeAnimator = function(data, heatmap, map) { 
+  var CrimeAnimator = function(data, heatmap) { 
     
-    this.map = map;
+    //this.map = map;
     this.data = data;
     this.heatmap = heatmap;
     this.dataLength = data.length - 1;
@@ -433,7 +436,7 @@
     //create marker array to track displayed markers and the info window that displays when they are clicked
     this.markers = [];
     this.showMarkers = true;
-    this.markerInfoWindow = new google.maps.InfoWindow();
+    //this.markerInfoWindow = new google.maps.InfoWindow();
 
     //figure out the date range
     this.dateRange = {start: data[0][3], end: data[data.length-1][3]};
@@ -476,14 +479,6 @@
     $(window).keypress(this.togglePause.bind(this));
 
     this.$animationControl = $animationControlButton.children('div');
-
-    //if the animation is paused then redraw the current frame on drag end
-    google.maps.event.addListener(map, 'dragend', function() {
-
-      if(self.isPaused)
-        self.drawFrame(self.currentDate);  
-
-    });
   };
 
   CrimeAnimator.prototype.DAY_IN_MILLI = 1000 * 60 * 60 * 24;
@@ -593,7 +588,7 @@
     return numberEndings[number >= numberEndings.length ? numberEndings.length - 1 : number];
   };
 
-  CrimeAnimator.prototype.applyFilters = function setData(filters) {
+  CrimeAnimator.prototype.applyFilters = function applyFilters(filters) {
     this.filters = filters;
   };
 
@@ -638,8 +633,8 @@
 
       //if no removals to make then just add the crime points that are between the currentDate and the next Date and aren't filtered
       var currentData = this.getCurrentHeatmapData(this.lowIndex, this.highIndex, visibleThreshold);
-      this.heatmap.setDataSet(currentData);
-
+      //console.log(currentData.data);
+      this.heatmap.setData(currentData.data);
   },
 
   CrimeAnimator.prototype.animate = function animate() {
@@ -764,15 +759,16 @@
   };
  
   function buildPin(color) {
-    return new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + color,
+    /*return new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + color,
       new google.maps.Size(21, 34),
       new google.maps.Point(0,0),
-      new google.maps.Point(10, 34));
+      new google.maps.Point(10, 34));*/
   }
+
   var crimeTypes = ['Theft from Auto', 'Auto Theft', 'Break & Enter' ,'Assult' ,'Robbery'];
   var crimePins = [buildPin('BFEADD'), buildPin('A1CDFB'), buildPin('C4B0DD') ,buildPin('FAE07E') ,buildPin('E5F9A6')];
   CrimeAnimator.prototype.addCrimeMarkers = function addCrimeMarkers() {
-    var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
+    /*var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
     var self = this;
 
     for(var i=currentData.length-1 ; i >= 0 ; i--) {
@@ -790,15 +786,7 @@
       });
 
       this.markers.push(marker);
-
-      //setup the markers onclick event to display the popup window
-      /*function setupMarkerInfoWindow(marker, crime) {
-        google.maps.event.addListener(marker, 'click', function() {
-          self.markerInfoWindow.content = 'type: ' + crime[2] + '<br>date: ' + Date.parse(year + '/' + (crime[3]+1) + '/' + crime[4]);
-          self.markerInfoWindow.open(self.map, marker);
-        });
-      }(marker, crime);*/
-    }
+    }*/
   };
 
   CrimeAnimator.prototype.removeCrimeMarkers = function removeCrimeMarkers() {
@@ -824,7 +812,7 @@
       var x = timeFromHighIndex / currentTimeRange;
       count = 50 * 4 * (x - Math.pow(x, 2)); //exponential curve for fade in/out
                       
-      heatmapData.push({lat : crime[0], lng : crime[1], count: count});
+      heatmapData.push({lat : crime[0], lon : crime[1], value: count});
     }
 
     return {max: 75, data: heatmapData};
@@ -833,7 +821,7 @@
   !function($){
     $(function(){
 
-      var myLatlng = new google.maps.LatLng(44.6544, -63.5992);
+/*      var myLatlng = new google.maps.LatLng(44.6544, -63.5992);
 
       var myOptions = {
         zoom: 12,
@@ -862,13 +850,65 @@
           
       });
 
-      var crimeAnimator = new CrimeAnimator(Data.crimes, heatmap, map);
+      // this is important, because if you set the data set too early, the latlng/pixel projection doesn't work
+      google.maps.event.addListenerOnce(map, 'idle', function() {
+        
+        //prevent animation start for first time user
+        if(localStorage.getItem('isReturningUser') === 'true') {
+        
+          window.setTimeout( function() {
+              crimeAnimator.start();
+            }, 300);
+
+        } else
+          localStorage.setItem('isReturningUser', 'true');
+      }); */
+
+      window.prettyPrint && prettyPrint();
+
+      var baseLayer = L.tileLayer(
+          'http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png',{
+              attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ' +
+                '<a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; ' +
+                'Map data {attribution.OpenStreetMap}',
+              minZoom: 0,
+              maxZoom: 20
+          }
+      );
+
+      var heatmapLayer = L.TileLayer.heatMap({
+          radius: 20,
+          opacity: 0.8,
+          gradient: {
+              0.45: "rgb(0,0,255)",
+              0.55: "rgb(0,255,255)",
+              0.65: "rgb(0,255,0)",
+              0.95: "yellow",
+              1.0: "rgb(255,0,0)"
+          }
+      });
+
+      var overlayMaps = {
+          'Heatmap': heatmapLayer
+      };
+
+      //var controls = L.control.layers(null, overlayMaps, {collapsed: false});
+
+      var map = new L.Map('heatmapArea', {
+          center: new L.LatLng(44.6544, -63.5992),
+          zoom: 12,
+          layers: [baseLayer, heatmapLayer]
+      });
+
+      //controls.addTo(map);
+
+      var crimeAnimator = new CrimeAnimator(Data.crimes, heatmapLayer);
 
       window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || 
                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || 
                               function(fn) {return setTimeout(fn, 1000 / 60);};
 
-        localStorage.removeItem('isReturningUser');
+      localStorage.removeItem('isReturningUser');
       if(!localStorage.getItem('isReturningUser')) {
         //show message box
         $('#first-time-user-message').show();
@@ -893,20 +933,6 @@
 
       $('#years').html(yearsMarkup.join(''));    
     
-
-      // this is important, because if you set the data set too early, the latlng/pixel projection doesn't work
-      google.maps.event.addListenerOnce(map, 'idle', function() {
-        //prevent animation start for first time user
-        if(localStorage.getItem('isReturningUser') === 'true') {
-        
-          window.setTimeout( function() {
-              crimeAnimator.start();
-            }, 300);
-
-        } else
-          localStorage.setItem('isReturningUser', 'true');
-      });
-
     });
   }(window.jQuery);
 

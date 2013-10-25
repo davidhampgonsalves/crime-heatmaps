@@ -65,7 +65,7 @@ function writeCrimesToDatabase(data) {
 	mongo.Db.connect(mongoUri, {safe:true}, function (err, db) {
 	  db.collection('crimes', function(er, crimesCollection) {
 	  	while(newCrimes.length > 0)
-	    	crimesCollection.insert(newCrimes.pop());
+	    	crimesCollection.insert(newCrimes.pop(), function() {});
 
 	    console.log('added ' + count + ' new records.');
 	    db.close();

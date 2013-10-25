@@ -40,8 +40,10 @@ HeatmapOverlay.prototype.onRemove = function(){
 }
 
 HeatmapOverlay.prototype.draw = function(){
-     
-    var me = this,
+     console.log('draw called');
+     return;
+
+    /*var me = this,
         overlayProjection = me.getProjection(),
         currentBounds = me.map.getBounds();
     
@@ -57,8 +59,9 @@ HeatmapOverlay.prototype.draw = function(){
         h = sw.y - ne.y,
         w = ne.x - sw.x;
 
-    me.conf.element.style.left = leftX + 'px';
-    me.conf.element.style.top = topY + 'px';
+
+    me.conf.element.style.left = topY + 'px';
+    me.conf.element.style.top = leftX + 'px';
     me.conf.element.style.width = w + 'px';
     me.conf.element.style.height = h + 'px';
     me.heatmap.store.get("heatmap").resize();
@@ -84,15 +87,14 @@ HeatmapOverlay.prototype.draw = function(){
 	        screenPixel = new google.maps.Point(divPixel.x - leftX, divPixel.y - topY);
 
 	    var roundedPoint = this.pixelTransform(screenPixel);
-		
-             d.data.push({ 
+        d.data.push({ 
 	        x: roundedPoint.x,
 	        y: roundedPoint.y,
 	        count: this.latlngs[len].c
 	    });
         }
         this.heatmap.store.setDataSet(d);
-    }
+    }*/
 }
 
 HeatmapOverlay.prototype.pixelTransform = function(p){
@@ -143,10 +145,21 @@ HeatmapOverlay.prototype.setDataSet = function(data){
             continue; 
         }
 
+
     	me.latlngs.push({latlng: latlng, c: d[dlen].count});
-    	point = me.pixelTransform(projection.fromLatLngToDivPixel(latlng));
+    	point = me.pixelTransform(projection.fromLatLngToContainerPixel(latlng));
     	mapdata.data.push({x: point.x, y: point.y, count: d[dlen].count});
     }
+
+
+        var ne = projection.fromLatLngToDivPixel(currentBounds.getNorthEast()),
+        sw = projection.fromLatLngToDivPixel(currentBounds.getSouthWest()),
+        topY = ne.y,
+        leftX = sw.x;
+        
+    me.conf.element.style.left = leftX + 'px';
+    me.conf.element.style.top = topY + 'px';
+
     me.heatmap.clear();
     me.heatmap.store.setDataSet(mapdata);
 }
