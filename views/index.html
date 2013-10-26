@@ -19,6 +19,14 @@
       height: 100%;
       color:black;
       background: #95DB8F;
+
+      //disable selection
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
     }
 
 
@@ -144,12 +152,6 @@
       width:90px;
 
       cursor: pointer;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
     }
 
     #progress-bar-pointer:after {
@@ -217,7 +219,7 @@
     }
 
     #options li {
-      padding:10px 13px;
+      padding:8px 13px;
       font-size: 14px;
       background:#BFEADD;
     }
@@ -259,8 +261,6 @@
       //display:none;
     }
 
-    //.mobile-only-content {display:none;}
-
     #first-time-user-message h2 {
       text-align:left;
     }
@@ -298,6 +298,8 @@
       font-size:20px;
       padding:15px;
     }
+
+    .mobile-only-content {display:none;}
 
     #mobile-icon {
       width:40px;
@@ -352,7 +354,7 @@
 <div id='first-time-user-message'>
   <h2>Welcome to Halifax Crime Maps</h2>
   <p>
-     Get the inside scoop on the crime that darkens our Halifax streets. Watch as crime hotspots form and disapate. Filter by crime type, drag the progress bar to control the animation, or enable the crime markers and dig deep into the underworld. 
+     Get the inside scoop on the crime that darkens our Halifax streets. Watch as crime hotspots form and disapate. Filter by crime type, drag the progress bar to control the animation, or enable the crime markers and dig deep into the underworld.
 
      Keep tabs on halifax criminal element and stay safe. As the Halifax police publish new data the animation grows.
   </p>
@@ -483,6 +485,21 @@
       if(self.isPaused)
         self.drawFrame(self.currentDate);  
 
+    });
+
+    google.maps.event.addListener(map, 'zoom_changed', function() {
+      var radiusMultiplier, zoom = map.getZoom();
+      if(zoom > 10)
+        radiusMultiplier = 2.6;
+      else if(zoom < 9)
+        radiusMultiplier = 1;
+      else
+        radiusMultiplier = 1.5;
+      console.log(radiusMultiplier);
+      heatmap.heatmap.set('radius', zoom * radiusMultiplier);
+
+      if(self.isPaused)
+        self.drawFrame(self.currentDate);        
     });
   };
 
@@ -835,6 +852,24 @@
 
       var myLatlng = new google.maps.LatLng(44.6544, -63.5992);
 
+
+      localStorage.removeItem('isReturningUser');
+      if(!localStorage.getItem('isReturningUser')) {
+        //show message box
+        $('#first-time-user-message').show();
+
+        if(isMobile)
+          $('.mobile-only-content').show();
+
+        $('#first-time-user-start').click(function(e) {
+          $('#first-time-user-message').hide();
+          crimeAnimator.start();
+          localStorage.setItem('isReturningUser', 'true');
+          e.preventDefault();
+          return;
+        });
+      }
+
       var myOptions = {
         zoom: 12,
         center: myLatlng,
@@ -857,9 +892,7 @@
       var heatmap = new HeatmapOverlay(map, {
           'radius':30,
           'visible':true, 
-          'opacity':40//,
-          //'gradient': { 0.45: "rgb(0,0,255)", 0.55: "rgb(0,255,255)", 0.65: "rgb(0,255,0)", 0.95: "yellow", 1.0: "rgb(255,0,0)"}
-          
+          'opacity':40
       });
 
       var crimeAnimator = new CrimeAnimator(Data.crimes, heatmap, map);
@@ -867,21 +900,6 @@
       window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || 
                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || 
                               function(fn) {return setTimeout(fn, 1000 / 60);};
-
-        localStorage.removeItem('isReturningUser');
-      if(!localStorage.getItem('isReturningUser')) {
-        //show message box
-        $('#first-time-user-message').show();
-
-        if(isMobile)
-          $('.mobile-only-content').show();
-
-        $('#first-time-user-start').click(function(e) {
-          $('#first-time-user-message').hide();
-          crimeAnimator.start();
-          e.preventDefault();
-        });
-      }
 
       //setup the year links and filters drop down  
       var yearsMarkup = [];                    
