@@ -416,10 +416,12 @@
   //http://heatmapdemo.alastair.is/js/map/heatmaplayer.js
   //http://eightmedia.github.io/hammer.js/
 
-  var isRunningInIE = navigator.userAgent.toLowerCase().indexOf('msie') >= 0;
-  var isMobile = typeof window.orientation !== 'undefined' && !navigator.userAgent.match(/iPad/i);
+  var userAgent = navigator.userAgent.toLowerCase();
 
-  if(isRunningInIE ? parseInt(navigator.userAgent.toLowerCase().split('msie')[1]) < 8 : false)
+  var isMobile = typeof window.orientation !== 'undefined' && !userAgent.match(/iPad/i);
+  var isBrowserFast = /webkit/.test(userAgent);
+
+  if(userAgent.indexOf('msie') >= 0 ? parseInt(navigator.userAgent.toLowerCase().split('msie')[1]) < 9 : false)
     alert('Sorry friend,\n but that browser is too old to learn new tricks,\n try Firefox, you will like it.');
 
  /*
@@ -532,6 +534,9 @@
       if(self.showMarkers)
         self.addCrimeMarkers();
 
+      if(!isBrowserFast)
+        self.resume.apply(self);
+
       $document.off('mousemove ontouchmove');
       e.preventDefault();
     };
@@ -544,7 +549,8 @@
 
     //setup dragability of progress bar pointer
     $progressBarPointer.on('mousedown ontouchstart', function(e) {
-      self.pause.apply(self);
+      if(!isBrowserFast)
+        self.pause.apply(self);
 
       $document.on('mousemove ontouchmove', function(e) {
         if(e.pageY < pointerOffsetTop) {
@@ -567,8 +573,8 @@
 
         self.removeCrimeMarkers();
 
-        //in chrome and FF we will animate
-        if(!isRunningInIE)
+        //in chrome we will animate on drag
+        if(isBrowserFast)
           self.drawFrame(self.currentDate);
 
         e.preventDefault();
@@ -937,32 +943,6 @@
     var crime = crimes[i];
     crime[3] = Date.parse(year + '/' + (crime[3]+1) + '/' + crime[4] +  ' ' + Math.floor(Math.random()*24) + ':00');
   }
-
-
-//from: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FGlobal_Objects%2FFunction%2Fbind#Compatibility
-if (!Function.prototype.bind) {
-  Function.prototype.bind = function (oThis) {
-    if (typeof this !== "function") {
-      // closest thing possible to the ECMAScript 5 internal IsCallable function
-      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
-    }
-
-    var aArgs = Array.prototype.slice.call(arguments, 1), 
-        fToBind = this, 
-        fNOP = function () {},
-        fBound = function () {
-          return fToBind.apply(this instanceof fNOP && oThis
-                                 ? this
-                                 : oThis,
-                               aArgs.concat(Array.prototype.slice.call(arguments)));
-        };
-
-    fNOP.prototype = this.prototype;
-    fBound.prototype = new fNOP();
-
-    return fBound;
-  };
-}
 
 </script>
 </body>
