@@ -18,8 +18,8 @@ app.configure(function(){
 
   app.use(express.logger());
 
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
+  //app.use(express.bodyParser());
+  //app.use(express.methodOverride());
 });
 
 var crimeTypes = {'THEFT FROM VEHICLE':0, 'THEFT OF VEHICLE': 1, 'BREAK AND ENTER':2, 'ASSAULT': 3, 'ROBBERY': 4};

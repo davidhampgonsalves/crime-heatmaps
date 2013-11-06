@@ -73,29 +73,6 @@
       #filters {display:none;}
     }
 
-    .button {
-      text-decoration:none;
-      color:black;
-
-      padding:10px;
-      display:block;
-
-      background:#87D69B;
-
-      -moz-box-shadow: -5px 5px #222;
-      -webkit-box-shadow: -5px 5px #222;
-      box-shadow: -5px 5px #222;
-    }
-
-    .button:hover {
-      background: #95DB8F;
-    }
-
-    .button:active {
-      margin: 3px 3px -3px -3px;
-      box-shadow: -2px 2px #222;
-    }
-
     #animation-control-button {
       float:left;
     }
@@ -179,119 +156,153 @@
       height:3px;
     }
 
-    #years {display:inline-block;}
-
-    #years a, #options a {
-      display:inline-block;
-      text-align:center;
-      padding:10px 0;
-      width:100px;
-
-      text-decoration: none;
+    .button {
+      text-decoration:none;
+      color:black;
+      padding:10px;
+      display:block;
+      background:#87D69B;
+      -moz-box-shadow:-5px 5px #222;
+      -webkit-box-shadow:-5px 5px #222;
+      box-shadow:-5px 5px #222;
     }
 
-    #years a.current {background:#BFEADD;}
-    #years a:hover {background:#BFEADD;}
+    .button:hover {
+      background:#95DB8F;
+    }
 
-    #options {
+    .button:active {
+      margin: 3px -3px;
+      box-shadow:-2px 2px #222;
+    }
+
+    a.button {
+      display:inline-block;
+      font-size:20px;
+      padding:15px;
+    }
+
+    .button.button-right {
+      float:right;
+      display:block;
+      text-decoration:none;
+      color:black;
+      padding:15px;
+      display:block;
+      background:white;
+      font-size: 16px;
+      -moz-box-shadow:5px 5px #222;
+      -webkit-box-shadow:5px 5px #222;
+      box-shadow: 5px 5px #222;
+      margin-right:5px;
+    }
+
+    .button.button-right:active {
+      box-shadow:2px 2px #222;
+      margin: 3px 2px -3px 3px;
+    }
+
+    #options-button {margin-right:0;}
+    #options-button:active {margin: 3px -3px -3px 3px;}
+    #options, #years{position:fixed;top:60px;right:0;z-index:97;text-align:right;}
+    
+    #options-area {
       position:fixed;
       top:0;
       right:0;
-      z-index: 97;
-
-      text-align:right;
+      z-index: 98;
     }
 
-
-    #options a {background:white;}
-
-    #options li {
+    #options-area li {
       float:right;
       clear:both;
-      list-style: none;
+      list-style:none;
       width:150px;
-
-      margin-right:-200px;
-
-      transition: margin-right .25s ease-in-out;
-      -moz-transition: margin-right .25s ease-in-out;
-      -webkit-transition: margin-right .25s ease-in-out;
-    }
-
-    #options li {
       padding:8px 13px;
-      font-size: 14px;
+      margin-right:-200px;
+      transition:margin-right .25s ease-in-out;
+      -moz-transition:margin-right .25s ease-in-out;
+      -webkit-transition:margin-right .25s ease-in-out;
+      font-size:14px;
       background:#BFEADD;
     }
-
-    #options li.title {
+    #options-area li.title {
       margin-top: 10px;
       font-size: 16px;
       background:white;
     }
+    #options li:nth-child(2){background:#A1CDFB;}
+    #options li:nth-child(3){background:#BFEADD;}
+    #options li:nth-child(4){background:#C4B0DD;}
+    #options li:nth-child(5){background:#FAE07E;}
+    #options li:nth-child(6){background:#E5F9A6;}
 
     input {
       margin:10px;
     }
 
-    #filters li:nth-child(2)  {background: #A1CDFB;}
-    #filters li:nth-child(3) {background: #BFEADD;}
-    #filters li:nth-child(4) {background: #C4B0DD;}
-    #filters li:nth-child(5) {background: #FAE07E;}
-    #filters li:nth-child(6) {background: #E5F9A6;}
+    #progress-bar-instructions {
+      position:absolute;
+      top:-75px;
+      left:140px;
+      height:62px;
+      padding-top:18px;
+      width:80px;
+      text-align: center;
+      background:white;
+      //display:inline-block;
+      display:none;
+    }
 
-    #first-time-user-message {
+    #progress-bar-instructions:after {
+      position:absolute;
+      content:' ';
+      top:50px;
+      left:0px;
+      border:solid transparent;
+      border-right:none;
+      border-bottom-color:#FFF;
+      border-width:15px;
+      margin-left:-15px;
+    }
+
+    .message-box {
       background:#FFF;
       position:fixed;
-      z-index: 99;
+      overflow:auto;
       
+      z-index:95;
       width:700px;
-
+      max-width:100%;
+      max-height:70%;
       padding:40px;
-
-      top: 50%;
-      left: 50%;
-      margin-top: -250px;
-      margin-left: -350px;
-
-      line-height: 160%;
-
+      top:50%;
+      left:50%;
+      margin-top:-250px;
+      margin-left:-350px;
+      line-height:160%;
       text-align:center;
-
-      //display:none;
+      display:none;
     }
 
-    #first-time-user-message h2 {
+    .message-box h2 {
       text-align:left;
     }
 
-    #first-time-user-message p {
-      margin:20px 0 30px 0;
-      text-align:left;
-    }
-
-    #first-time-user-message .mobile-only-content {
-      margin-top:40px;
-      margin-bottom:15px;
-      padding:15px;
-      text-align:left;
-    }
-
-    #first-time-user-message .footer {
+    .message-box p{margin:20px 0 30px 0;text-align:left;}
+    .message-box .footer {
       margin:40px 0 0px 0;
       text-align:center;
       text-weight:800;
     }
 
-    #first-time-user-message .footer a {
+    .message-box .footer a {
       text-decoration:none;
       font-weight:800;
       color:#333;
     }
 
-    #first-time-user-message .footer a:hover {
-      color: #95DB8F;
-    }
+    .message-box .footer a:hover{color:#95DB8F;}
 
     a.button {
       display:inline-block;
@@ -351,12 +362,14 @@
 <body>
 
 
-<div id='first-time-user-message'>
+<div id='first-time-user-message' class=message-box>
   <h2>Welcome to Halifax Crime Maps</h2>
   <p>
-     Get the inside scoop on the crime that darkens our Halifax streets. Watch as crime hotspots form and disapate. Filter by crime type, drag the progress bar to control the animation, or enable the crime markers and dig deep into the underworld.
-
-     Keep tabs on halifax criminal element and stay safe. As the Halifax police publish new data the animation grows.
+    Get the inside scoop on the crime that darkens our Halifax streets. 
+    <br>
+    Apply filters, drag the progress bar, or pause the animation to see each crime.
+    <br>
+    As the Halifax police publish new data the animation grows.
   </p>
 
   <div class='mobile-only-content'>
@@ -364,14 +377,28 @@
       <div class='line'></div>
       <div class='screen'></div>
       <div class='dot'></div>
-     </div>
+    </div>
     We can only pack so much awesome into your mobile device, visit on a computer for the full effect.
   </div>
 
   <a href='#' id='first-time-user-start' class=button>Lets Roll</a>
-
   <p class='footer'>Powered by <a href='https://www.halifaxopendata.ca/'>OpenDataHalifax</a></p>
 </div>
+
+
+<div id=about-message class=message-box>
+  <h2>About Halifax Crime Maps</h2>
+  <p>
+    Halifax Crime Maps is an animated heatmap of crime in Halifax based on the the weekly released data from <a href='https://www.halifaxopendata.ca/'>OpenDataHalifax</a>.
+    <br><br>
+    Our heatmap show the density of crime in Halifax and how it has evolved over time. You can apply filters to target spesific types of crime, drag the progress bar to spesific dates, or pause the animation and see the individual crime markers.
+    <br><br>
+    Since this site uses some pretty heavy HTML5 features it works best in Google Chrome but will still work(with certain features disabled) on mobile devices or any new(ish) browser.
+
+    <p class='footer'>By <a href='https://www.davidhampgonsalves.com'>David Hamp-Gonsalves.</a></p>
+  </p>
+</div>
+
 
 <div id=header>
   <h1>Halifax<span>Crime</span></h1>
@@ -380,20 +407,23 @@
   </div>
 </div>
  
-<div id=options>
-  <div id=years></div>
-  <a href='#'>options</a>
+<div id=options-area>
+  <a href='#' id='options-button' class='button button-right'>options</a>
+  <a href='#' id='years-button' class='button button-right'>years</a>
+  <a href='#' id='about-button' class='button button-right'>about</a>
 
-  <ul id=filters>
-    <li class=title>Filters
-    <li><label for='filter-auto-theft'>Auto Theft</label><input id='filter-auto-theft' type='checkbox' name='1'>
-    <li><label for='filter-theft-auto'>Theft from Auto</label><input id='filter-theft-auto' type='checkbox' name='0'>
-    <li><label for='filter-break-enter'>Break & Enter</label><input id='filter-break-enter'type='checkbox' name='2'>
-    <li><label for='filter-assult'>Assult</label><input id='filter-assult' type='checkbox' name='3'>
-    <li><label for='filter-robbery'>Robbery</label><input id='filter-robbery' type='checkbox' name='4'>
+  <ul id=years>
+    <li class=title>Years
   </ul>
 
-  <ul id=markers>
+  <ul id=options>
+    <li class=title>Filters
+    <li><label for='filter-auto-theft'>Auto Theft</label><input id='filter-auto-theft' type='checkbox' name='1' checked>
+    <li><label for='filter-theft-auto'>Theft from Auto</label><input id='filter-theft-auto' type='checkbox' name='0' checked>
+    <li><label for='filter-break-enter'>Break & Enter</label><input id='filter-break-enter'type='checkbox' name='2' checked>
+    <li><label for='filter-assult'>Assult</label><input id='filter-assult' type='checkbox' name='3' checked>
+    <li><label for='filter-robbery'>Robbery</label><input id='filter-robbery' type='checkbox' name='4' checked>
+
     <li class=title>Crime Markers
     <li><label for='options-markers'>Show on Pause</label><input id='options-markers' type='checkbox' name='crime-markers' checked>
   </ul>
@@ -403,8 +433,9 @@
 
 <div id='progress-bar-background'> </div>
 <div id='progress-bar-container'>
-  <div id='progress-bar-pointer-container'> 
+  <div id='progress-bar-pointer-container'>
     <div id='progress-bar-pointer' onclick='void(0)'></div>
+    <div id='progress-bar-instructions'>drag me<br>to jump dates</div>
   </div>
   <div id='progress-bar'> </div>
 </div>
@@ -468,13 +499,8 @@
     $animationControlButton.click(this.togglePause.bind(this));
 
     //handle the filter click events
-    $('#filters input').on('change', this.changeFilters.bind(this));
+    $('#options input:not(#options-markers)').on('change', this.changeFilters.bind(this));
     $('#options-markers').on('change', this.toggleCrimeMarkers.bind(this));
-    //handle the filter area drop down on click
-    $('#options a').click(function() {
-      var $options = $('#options li');
-      self.fadeEachOption($options.toArray(), $options.css('margin-right') === '0px');
-    });
 
     //hookup spacebar pauser/resume
     $(window).keypress(this.togglePause.bind(this));
@@ -534,9 +560,6 @@
       if(self.showMarkers)
         self.addCrimeMarkers();
 
-      if(!isBrowserFast)
-        self.resume.apply(self);
-
       $document.off('mousemove ontouchmove');
       e.preventDefault();
     };
@@ -549,8 +572,7 @@
 
     //setup dragability of progress bar pointer
     $progressBarPointer.on('mousedown ontouchstart', function(e) {
-      if(!isBrowserFast)
-        self.pause.apply(self);
+      self.pause.apply(self);
 
       $document.on('mousemove ontouchmove', function(e) {
         if(e.pageY < pointerOffsetTop) {
@@ -621,14 +643,12 @@
   };
 
   CrimeAnimator.prototype.updateIndexPositions = function updateIndexPositions(visibleThreshold, nextDate) {
-
     this.lowIndex = this.getNewIndexPosition(this.lowIndex, visibleThreshold, 0);
 
     if(this.highIndex < this.lowIndex)
       this.highIndex = this.lowIndex;
   
     this.highIndex = this.getNewIndexPosition(this.highIndex, nextDate, this.lowIndex);
-
   },
 
   /**
@@ -655,14 +675,12 @@
   };
 
   CrimeAnimator.prototype.drawFrame = function drawFrame(nextDate) {
-      
       var visibleThreshold = this.currentDate - this.visibleLifespan;
       this.updateIndexPositions(visibleThreshold, nextDate);
 
       //if no removals to make then just add the crime points that are between the currentDate and the next Date and aren't filtered
       var currentData = this.getCurrentHeatmapData(this.lowIndex, this.highIndex, visibleThreshold);
       this.heatmap.setDataSet(currentData);
-
   },
 
   CrimeAnimator.prototype.animate = function animate() {
@@ -747,23 +765,14 @@
       this.pause();
   };
 
-  CrimeAnimator.prototype.fadeEachOption = function fadeEachOption(options, isFadeIn) {
-    if(options.length <= 0)
-      return;
-
-    options.shift().style.marginRight = isFadeIn ? '-200px' : '0';
-
-    //adjust the wait time depending on if we are animating(which slows everything down)
-    window.setTimeout(this.fadeEachOption.bind(this, options, isFadeIn), this.isPaused || !this.isAnimating ? 30 : 0);
-  };
-
   CrimeAnimator.prototype.changeFilters = function changeFilters(e) {
     var checkbox = e.target;
 
     var filterNumber = Number(checkbox.name);
-    if(checkbox.checked)
+    if(!checkbox.checked) {
+      console.log('adding filter');
       this.filters.push(filterNumber);
-    else {
+    } else {
       var index = this.filters.indexOf(filterNumber);
       if (index > -1)
        this.filters.splice(index, 1);
@@ -858,24 +867,6 @@
 
       var myLatlng = new google.maps.LatLng(44.6544, -63.5992);
 
-
-      localStorage.removeItem('isReturningUser');
-      if(!localStorage.getItem('isReturningUser')) {
-        //show message box
-        $('#first-time-user-message').show();
-
-        if(isMobile)
-          $('.mobile-only-content').show();
-
-        $('#first-time-user-start').click(function(e) {
-          $('#first-time-user-message').hide();
-          crimeAnimator.start();
-          localStorage.setItem('isReturningUser', 'true');
-          e.preventDefault();
-          return;
-        });
-      }
-
       var myOptions = {
         zoom: 12,
         center: myLatlng,
@@ -907,34 +898,59 @@
                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || 
                               function(fn) {return setTimeout(fn, 1000 / 60);};
 
+      if(isMobile)
+        $('.mobile-only-content').show();
+
+      //handle the filter area drop down on click
+      $('#options-button').click(function() {
+        var $options = $('#options li');
+        fadeEachOption($('#years li').toArray(), true); //hide other options
+        fadeEachOption($options.toArray(), $options.css('margin-right') === '0px');
+      });
+
+      $('#years-button').click(function() {
+        var $options = $('#years li');
+        fadeEachOption($('#options li').toArray(), true); //hide other options
+        fadeEachOption($options.toArray(), $options.css('margin-right') === '0px');
+      });
+
+      $('#about-button').click(function() { 
+        $('#about-message').toggle();
+      });
+
+
       //setup the year links and filters drop down  
       var yearsMarkup = [];                    
       for(var i=0, len=Data.years.length ; i < len ; i++) {
         var year = Data.years[i];
         var isCurrent = Data.year === year;
-        yearsMarkup.push('<a href="' + (isCurrent ? '#' : '/' + year) + '"' + (isCurrent ? ' class=current' : '') + '>' + year + '</a>');
+        yearsMarkup.push('<li><a href="' + (isCurrent ? '#' : '/' + year) + '"' + (isCurrent ? ' class=current' : '') + '>' + year + '</a>');
       }
+      $('#years').append(yearsMarkup.join(''));   
 
-      $('#years').html(yearsMarkup.join(''));    
-    
 
       // this is important, because if you set the data set too early, the latlng/pixel projection doesn't work
       google.maps.event.addListenerOnce(map, 'idle', function() {
-        //prevent animation start for first time user
-        if(localStorage.getItem('isReturningUser') === 'true') {
-        
-          window.setTimeout( function() {
-              crimeAnimator.start();
-            }, 300);
-
-        } else
-          localStorage.setItem('isReturningUser', 'true');
+        //wait a bit for the user to get use to the map before we blow their mind with the animation
+        window.setTimeout( function() {
+            crimeAnimator.start();
+          }, 400);
       });
 
     });
   }(window.jQuery);
 
   var Data = <%- JSON.stringify(data) %>;  
+
+  function fadeEachOption(options, isFadeIn) {
+    if(options.length <= 0)
+      return;
+
+    options.shift().style.marginRight = isFadeIn ? '-200px' : '0';
+
+    //adjust the wait time depending on if we are animating(which slows everything down)
+    window.setTimeout(fadeEachOption.bind(this, options, isFadeIn), this.isPaused || !this.isAnimating ? 30 : 0);
+  };
   
   //transform and inflate dates from server and create mock times so that each days data is at least somewhat distributed
   var year = Data.year;
