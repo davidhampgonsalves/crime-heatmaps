@@ -1007,24 +1007,27 @@
   var year = Data.year;
   var rawCrimeData = Data.crimes;
   Data.crimes = [];
-  for(var i=0, len=rawCrimeData.length ; i < len ;) {
+  for(var i=0, len=rawCrimeData.length ; i < len ; i += 7) {
     var crime = [];
 
-    crime.push((40000 + getNextFourDigits(rawCrimeData, i)) / 1000);
-    i += 4;
-    crime.push((60000 + getNextFourDigits(rawCrimeData, i)) / -1000);
-    i += 4;
-    crime.push(Number(rawCrimeData[i]));
-    i += 1;
+    crime.push((40000 + decode2DigitsFromBase100(rawCrimeData, i)) / 1000);
+    crime.push((60000 + decode2DigitsFromBase100(rawCrimeData, i+2)) / -1000);
+    crime.push(Number(rawCrimeData[i+4]));
 
-    var rawDateData = getNextFourDigits(rawCrimeData, i);
+    var rawDateData = decode2DigitsFromBase100(rawCrimeData, i+5);
     crime.push(Date.parse(year + '/' + (Math.floor(rawDateData / 100)+1) + '/' + (rawDateData % 100) +  ' ' + Math.floor(Math.random()*24) + ':00'));
-    i += 4;
 
     Data.crimes.push(crime);
   }
 
-  function getNextFourDigits(rawCrimeData, i) {return Number(rawCrimeData[i] + rawCrimeData[i+1] + rawCrimeData[i+2] + rawCrimeData[i+3]);}
+  console.log(Data.crimes);
+
+  function decode2DigitsFromBase100(rawCrimeData, i) {
+    var test = rawCrimeData.charCodeAt(i);
+    var test2 = rawCrimeData.charCodeAt(i+1);
+    var test3 = rawCrimeData[i];
+    return ((rawCrimeData.charCodeAt(i)-65) * 100) + (rawCrimeData.charCodeAt(i+1)-65);
+  }
   
   function fadeEachOption(options, isFadeIn) {
     if(options.length <= 0)

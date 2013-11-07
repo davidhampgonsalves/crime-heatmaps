@@ -24,6 +24,8 @@ app.configure(function(){
 
 var crimeTypes = {'THEFT FROM VEHICLE':0, 'THEFT OF VEHICLE': 1, 'BREAK AND ENTER':2, 'ASSAULT': 3, 'ROBBERY': 4};
 app.get('/', function(req, res) {
+	res.header("Content-Type", "text/html; charset=utf-8");
+
 	var serverData = {};
 	serverData.year = null;
 	mongo.Db.connect(mongoUri, function (err, db) {
@@ -45,7 +47,7 @@ app.get('/', function(req, res) {
 					serverData.year = crimeDate.getFullYear();
 
 				//NON COMPRESSED: crimes.push([crime.latitude, crime.longitude, crimeTypes[crime.type], crimeDate.getMonth(), crimeDate.getDate()]);
-				crimes.push(compressCoord(crime.latitude) + compressCoord(crime.longitude) + crimeTypes[crime.type] + getTwoDigitString(crimeDate.getMonth()) + getTwoDigitString(crimeDate.getDate()));
+				crimes.push(compressCoord(crime.latitude) + compressCoord(crime.longitude) + crimeTypes[crime.type] + compress4Digits((crimeDate.getMonth() * 100) + crimeDate.getDate()));
 			});
 		});
 
@@ -53,19 +55,21 @@ app.get('/', function(req, res) {
 	});
 });
 
-function compressCoord(coord) {
-  var coord = String(Math.abs(coord));
-  coord = coord[1] + coord.substring(3);
+function compressCoord(digits) {
+	digits *= 1000;
 
-  while(coord.length < 4)
-  	coord = coord + '0';
+	if(digits < 0)
+		digits = Math.abs(digits + 60000);
+	else
+		digits -= 40000;
 
-  return coord;
+	return compress4Digits(digits);
 }
 
-function getTwoDigitString(num) {
-  return num < 10 ? '0' + num : String(num);
+function compress4Digits(digits) {
+	return '' + String.fromCharCode(Math.floor(digits/100) + 65) + String.fromCharCode((digits % 100) + 65);
 }
+
 
 var port = process.env.PORT || 5000;
 app.listen(port, function() {
