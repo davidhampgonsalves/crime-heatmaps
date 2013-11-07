@@ -34,7 +34,7 @@ app.get('/', function(req, res) {
 			cursor.each(function(err, crime) {
 				//when our cusor is exhausted then render template
 				if(crime === null) {
-					serverData.crimes = crimes;
+					serverData.crimes = crimes.join('');
 					serverData.years = [2013];
 					res.render('index.html', { data: serverData });
 					return;
@@ -44,13 +44,28 @@ app.get('/', function(req, res) {
 				if(!serverData.year)
 					serverData.year = crimeDate.getFullYear();
 
-				crimes.push([crime.latitude, crime.longitude, crimeTypes[crime.type], crimeDate.getMonth(), crimeDate.getDate()]);
+				//NON COMPRESSED: crimes.push([crime.latitude, crime.longitude, crimeTypes[crime.type], crimeDate.getMonth(), crimeDate.getDate()]);
+				crimes.push(compressCoord(crime.latitude) + compressCoord(crime.longitude) + crimeTypes[crime.type] + getTwoDigitString(crimeDate.getMonth()) + getTwoDigitString(crimeDate.getDate()));
 			});
 		});
 
 	  });
 	});
 });
+
+function compressCoord(coord) {
+  var coord = String(Math.abs(coord));
+  coord = coord[1] + coord.substring(3);
+
+  while(coord.length < 4)
+  	coord = coord + '0';
+
+  return coord;
+}
+
+function getTwoDigitString(num) {
+  return num < 10 ? '0' + num : String(num);
+}
 
 var port = process.env.PORT || 5000;
 app.listen(port, function() {

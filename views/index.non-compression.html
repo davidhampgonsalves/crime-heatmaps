@@ -13,6 +13,12 @@
 
       font-family: 'Open Sans', sans-serif;
       font-weight:300;
+    }
+    html, body {
+      width: 100%; 
+      height: 100%;
+      color:black;
+      background: #95DB8F;
 
       //disable selection
       -webkit-touch-callout: none;
@@ -22,12 +28,7 @@
       -ms-user-select: none;
       user-select: none;
     }
-    html, body {
-      width: 100%; 
-      height: 100%;
-      color:black;
-      background: #95DB8F;
-    }
+
 
     #header {
       z-index:99;
@@ -50,6 +51,27 @@
       font-weight:300;
     }
 
+    @media (max-width: 800px) {
+      h1 {
+        font-size:30px;
+      }
+
+      h1 span {
+        font-size: 45px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size:20px;
+      }
+
+      h1 span {
+        font-size: 35px;
+      }
+
+      #filters {display:none;}
+    }
 
     #animation-control-button {
       float:left;
@@ -89,6 +111,7 @@
     #progress-bar-container {
       position:fixed;
       overflow:visible;
+      width:5%;
       left:0;
       bottom:0;
       z-index:99;
@@ -128,34 +151,9 @@
       position:absolute;
       background:#327CCB;
       width:100%;
-      left:0;
+      right:0;
       bottom:0;
       height:3px;
-    }
-
-    #progress-bar-instructions {
-      position:absolute;
-      top:-75px;
-      left:140px;
-      height:62px;
-      padding-top:18px;
-      width:80px;
-      text-align: center;
-      background:white;
-      //display:inline-block;
-      display:none;
-    }
-
-    #progress-bar-instructions:after {
-      position:absolute;
-      content:' ';
-      top:50px;
-      left:0px;
-      border:solid transparent;
-      border-right:none;
-      border-bottom-color:#FFF;
-      border-width:15px;
-      margin-left:-15px;
     }
 
     .button {
@@ -212,7 +210,7 @@
       position:fixed;
       top:0;
       right:0;
-      z-index: 101;
+      z-index: 98;
     }
 
     #options-area li {
@@ -241,6 +239,31 @@
 
     input {
       margin:10px;
+    }
+
+    #progress-bar-instructions {
+      position:absolute;
+      top:-75px;
+      left:140px;
+      height:62px;
+      padding-top:18px;
+      width:80px;
+      text-align: center;
+      background:white;
+      //display:inline-block;
+      display:none;
+    }
+
+    #progress-bar-instructions:after {
+      position:absolute;
+      content:' ';
+      top:50px;
+      left:0px;
+      border:solid transparent;
+      border-right:none;
+      border-bottom-color:#FFF;
+      border-width:15px;
+      margin-left:-15px;
     }
 
     .message-box {
@@ -334,88 +357,34 @@
       -moz-border-radius: 4px;
     }
 
-    #legend {
-      height:250px;
-      max-heignt:40%;
-      width:60px;
-      position:fixed;
-      left:0;
-      bottom:125px;
-      margin-left:-60px;
-      overflow:visible;
-
-      transition:margin-left .25s ease-in-out;
-      -moz-transition:margin-left .25s ease-in-out;
-      -webkit-transition:margin-left .25s ease-in-out;
-    }
-    #legend.show {margin-left:25px;}
-
-    #numbers, #colors {
-      position:absolute;
-      top:0;
-      left:0;
-      display:table;
-      height:100%;
-      width:100%;
-      z-index:97;
-    }
-    #numbers {z-index:98;}
-
-    #numbers div, #colors div {
-      display:table-row;
-    }
-
-    #numbers div span, #colors div span {
-      width:100%;
-      display:table-cell;
-      text-align: center;
-        vertical-align: middle;
-    }
-    #colors div:nth-child(1) span {background:#FCB7A7;}
-    #colors div:nth-child(2) span {background:#F8F087;}
-    #colors div:nth-child(3) span {background:#B7E3C0;}
-    #colors div:nth-child(4) span {background:#B8D0DD;}
-
-    @media (max-width: 800px) {
-      h1 {
-        font-size:30px;
-      }
-
-      h1 span {
-        font-size: 45px;
-      }
-
-      * {
-        font-size: 14px;
-      }
-
-      .message-box {
-        width:100%;
-        height:100%;
-        top:0;
-        left:0;
-        margin:0;
-        z-index:100;
-      }
-
-      .message-box h2 {
-        font-size: 18px;
-      }
-    }
-
-    @media (max-width: 600px) {
-      h1 {
-        font-size:20px;
-      }
-
-      h1 span {
-        font-size: 35px;
-      }
-    }
-
   </style>
   </head>
 <body>
+
+
+<div id='first-time-user-message' class=message-box>
+  <h2>Welcome to Halifax Crime Maps</h2>
+  <p>
+    Get the inside scoop on the crime that darkens our Halifax streets. 
+    <br>
+    Apply filters, drag the progress bar, or pause the animation to see each crime.
+    <br>
+    As the Halifax police publish new data the animation grows.
+  </p>
+
+  <div class='mobile-only-content'>
+    <div id='mobile-icon'>
+      <div class='line'></div>
+      <div class='screen'></div>
+      <div class='dot'></div>
+    </div>
+    We can only pack so much awesome into your mobile device, visit on a computer for the full effect.
+  </div>
+
+  <a href='#' id='first-time-user-start' class=button>Lets Roll</a>
+  <p class='footer'>Powered by <a href='https://www.halifaxopendata.ca/'>OpenDataHalifax</a></p>
+</div>
+
 
 <div id=about-message class=message-box>
   <h2>About Halifax Crime Maps</h2>
@@ -425,15 +394,6 @@
     Our heatmap show the density of crime in Halifax and how it has evolved over time. You can apply filters to target spesific types of crime, drag the progress bar to spesific dates, or pause the animation and see the individual crime markers.
     <br><br>
     Since this site uses some pretty heavy HTML5 features it works best in Google Chrome but will still work(with certain features disabled) on mobile devices or any new(ish) browser.
-
-    <div class='mobile-only-content'>
-      <div id='mobile-icon'>
-        <div class='line'></div>
-        <div class='screen'></div>
-        <div class='dot'></div>
-      </div>
-      We can only pack so much awesome into your mobile device, visit on a computer for the full effect.
-    </div>
 
     <p class='footer'>By <a href='https://www.davidhampgonsalves.com'>David Hamp-Gonsalves.</a></p>
   </p>
@@ -470,21 +430,6 @@
 </div>
 
 <div id='heatmapArea'></div>
-
-<div id=legend>
-  <div id=numbers>
-    <div><span>4<span></div>
-    <div><span>3<span></div>
-    <div><span>2<span></div>
-    <div><span>1<span></div>
-  </div>
-  <div id=colors>
-    <div><span><span></div>
-    <div><span><span></div>
-    <div><span><span></div>
-    <div><span><span></div>
-  </div>
-</div>
 
 <div id='progress-bar-background'> </div>
 <div id='progress-bar-container'>
@@ -789,9 +734,7 @@
     console.log('pausing');
 
     this.$animationControl.removeClass('pause');
-    this.$animationControl.addClass('play');
-
-    $('#legend').addClass('show');
+    this.$animationControl.addClass('play');     
 
     this.isPaused = true;
 
@@ -807,8 +750,6 @@
 
     this.$animationControl.removeClass('play');
     this.$animationControl.addClass('pause');
-
-    $('#legend').removeClass('show');
 
     this.isPaused = false;
       
@@ -901,7 +842,7 @@
   CrimeAnimator.prototype.getCurrentHeatmapData = function getCurrentHeatmapData(lowIndex, highIndex, visibleThreshold) {
     var currentData = this.data.slice(this.lowIndex, this.highIndex + 1);
     
-    var crime, type, count, timeFromHighIndex, heatmapData = [];
+    var crime, type, count, timeFromHighIndex, timeRange, heatmapData = [];
     var currentTimeRange = this.currentDate - visibleThreshold;
 
     for(var i = currentData.length-1 ; i >= 0 ; i--) {
@@ -913,12 +854,12 @@
 
       timeFromHighIndex = this.currentDate - crime[3];
       var x = timeFromHighIndex / currentTimeRange;
-      count = Math.abs(4 * (x - Math.pow(x, 2))); //exponential curve for fade in/out
-      //console.log(count);
+      count = 50 * 4 * (x - Math.pow(x, 2)); //exponential curve for fade in/out
+                      
       heatmapData.push({lat : crime[0], lng : crime[1], count: count});
     }
 
-    return {max: 3, data: heatmapData};
+    return {max: 75, data: heatmapData};
   };
 
   !function($){
@@ -948,7 +889,7 @@
       var heatmap = new HeatmapOverlay(map, {
           'radius':30,
           'visible':true, 
-          'opacity':40 
+          'opacity':40
       });
 
       var crimeAnimator = new CrimeAnimator(Data.crimes, heatmap, map);
@@ -999,33 +940,8 @@
     });
   }(window.jQuery);
 
-
   var Data = <%- JSON.stringify(data) %>;  
 
-
-  //inflate dates/values from server and create mock times so that each days data is at least somewhat distributed
-  var year = Data.year;
-  var rawCrimeData = Data.crimes;
-  Data.crimes = [];
-  for(var i=0, len=rawCrimeData.length ; i < len ;) {
-    var crime = [];
-
-    crime.push((40000 + getNextFourDigits(rawCrimeData, i)) / 1000);
-    i += 4;
-    crime.push((60000 + getNextFourDigits(rawCrimeData, i)) / -1000);
-    i += 4;
-    crime.push(Number(rawCrimeData[i]));
-    i += 1;
-
-    var rawDateData = getNextFourDigits(rawCrimeData, i);
-    crime.push(Date.parse(year + '/' + (Math.floor(rawDateData / 100)+1) + '/' + (rawDateData % 100) +  ' ' + Math.floor(Math.random()*24) + ':00'));
-    i += 4;
-
-    Data.crimes.push(crime);
-  }
-
-  function getNextFourDigits(rawCrimeData, i) {return Number(rawCrimeData[i] + rawCrimeData[i+1] + rawCrimeData[i+2] + rawCrimeData[i+3]);}
-  
   function fadeEachOption(options, isFadeIn) {
     if(options.length <= 0)
       return;
@@ -1035,7 +951,14 @@
     //adjust the wait time depending on if we are animating(which slows everything down)
     window.setTimeout(fadeEachOption.bind(this, options, isFadeIn), this.isPaused || !this.isAnimating ? 30 : 0);
   };
-
+  
+  //transform and inflate dates from server and create mock times so that each days data is at least somewhat distributed
+  var year = Data.year;
+  var crimes = Data.crimes;
+  for(var i=crimes.length-1 ; i >= 0 ; i--) {
+    var crime = crimes[i];
+    crime[3] = Date.parse(year + '/' + (crime[3]+1) + '/' + crime[4] +  ' ' + Math.floor(Math.random()*24) + ':00');
+  }
 
 </script>
 </body>
