@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang='en'>
 <head>
-  <meta name="viewport" content="width=device-width, user-scalable=no">
-
   <script type='text/javascript' src='http://maps.google.com/maps/api/js?sensor=false'></script>
   <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
 
@@ -405,7 +403,7 @@
       }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 1000px) {
       h1 {
         font-size:20px;
       }
@@ -420,13 +418,14 @@
 <body>
 
 <div id=about-message class=message-box>
-  <h2>About Halifax Crime Maps</h2>
-  <p>
-    Halifax Crime Maps is an animated heatmap of crime in Halifax based on the the weekly released data from <a href='https://www.halifaxopendata.ca/'>OpenDataHalifax</a>.
-    <br><br>
-    Our heatmap show the density of crime in Halifax and how it has evolved over time. You can apply filters to target spesific types of crime, drag the progress bar to spesific dates, or pause the animation and see the individual crime markers.
-    <br><br>
-    Since this site uses some pretty heavy HTML5 features it works best in Google Chrome but will still work(with certain features disabled) on mobile devices or any new(ish) browser.
+
+<h2>About Halifax Crime Maps</h2>
+<p>
+  Halifax Crime Maps is an animated heatmap of crimes in Halifax powered by <a href='https://www.halifaxopendata.ca/'>OpenDataHalifax</a>. Watch each week as new data is added and the animation grows.
+  <br><br>
+  Our heatmap shows the density of crime in Halifax. You can apply filters, drag the progress bar to spesific dates, or pause the animation and see the individual crime markers.
+  <br><br>
+  This requires some heavy duty HTML5 features and works best in Google Chrome. We disable certain features on mobile devices and other browsers.
 
     <div class='mobile-only-content'>
       <div id='mobile-icon'>
@@ -1006,7 +1005,7 @@
             $progressBarInstructions.hide();
           }, 15000);
         }
-      });
+      }); 
 
     });
   }(window.jQuery);
