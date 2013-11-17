@@ -36,17 +36,18 @@
     }
 
     h1 {
-      font-size:40px;
+      font-size:45px;
       font-weight:700;
 
-      margin-right:15px;
+      line-height: 160%;
+      margin:0 25px 0 10px;
       
       display:block;
       float:left;
     }
 
     h1 span {
-      font-size: 50px;
+      font-size: 53px;
       font-weight:300;
     }
 
@@ -169,7 +170,7 @@
     }
 
     .button:hover {
-      background:#95DB8F;
+      background:#AAEBBB;
     }
 
     .button:active {
@@ -196,6 +197,10 @@
       -webkit-box-shadow:5px 5px #222;
       box-shadow: 5px 5px #222;
       margin-right:5px;
+    }
+
+    .button.button-right:hover {
+      background:#DFD;
     }
 
     .button.button-right:active {
@@ -419,7 +424,7 @@
 
 <div id=about-message class=message-box>
 
-<h2>About Halifax Crime Maps</h2>
+<h2>About the Halifax Crime Heatmap</h2>
 <p>
   Halifax Crime Maps is an animated heatmap of crimes in Halifax powered by <a href='https://www.halifaxopendata.ca/'>OpenDataHalifax</a>. Watch each week as new data is added and the animation grows.
   <br><br>
@@ -931,9 +936,14 @@
         scrollwheel: true,
         draggable: true,
         navigationControl: true,
-        mapTypeControl: true,
+        mapTypeControl: false,
         scaleControl: true,
-        disableDoubleClickZoom: true,
+        zoomControl: true,
+        zoomControlOptions: {
+          style: google.maps.ZoomControlStyle.DEFAULT,
+          position: google.maps.ControlPosition.RIGHT_CENTER
+        },
+        disableDoubleClickZoom: false,
         styles: [{ "stylers": [
           { "saturation": -26 },  
           { "lightness": 18 },
