@@ -36,7 +36,7 @@ app.get('/', function(req, res) {
 			cursor.each(function(err, crime) {
 				//when our cusor is exhausted then render template
 				if(crime === null) {
-					serverData.crimes = crimes.join('');
+					serverData.crimes = crimes;
 					serverData.years = [2013];
 					res.render('index.html', { data: serverData });
 					return;
@@ -46,8 +46,8 @@ app.get('/', function(req, res) {
 				if(!serverData.year)
 					serverData.year = crimeDate.getFullYear();
 
-				//NON COMPRESSED: crimes.push([crime.latitude, crime.longitude, crimeTypes[crime.type], crimeDate.getMonth(), crimeDate.getDate()]);
-				crimes.push(compressCoord(crime.latitude) + compressCoord(crime.longitude) + crimeTypes[crime.type] + compress4Digits((crimeDate.getMonth() * 100) + crimeDate.getDate()));
+				crimes.push([crime.latitude, crime.longitude, crimeTypes[crime.type], crimeDate.getMonth(), crimeDate.getDate()]);
+				//COMPRESSED: crimes.push(compressCoord(crime.latitude) + compressCoord(crime.longitude) + crimeTypes[crime.type] + compress4Digits((crimeDate.getMonth() * 100) + crimeDate.getDate()));
 			});
 		});
 

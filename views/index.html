@@ -509,6 +509,7 @@
 
   //http://heatmapdemo.alastair.is/js/map/heatmaplayer.js
   //http://eightmedia.github.io/hammer.js/
+  var DAY_IN_MILLI = 1000 * 60 * 60 * 24;
 
   var userAgent = navigator.userAgent.toLowerCase();
 
@@ -518,6 +519,7 @@
   if(userAgent.indexOf('msie') >= 0 ? parseInt(navigator.userAgent.toLowerCase().split('msie')[1]) < 9 : false)
     alert('Sorry friend,\n but that browser is too old to learn new tricks,\n try Firefox, you will like it.');
 
+  
  /*
    * emits events after each animation frame and after animation is complete
   */
@@ -535,7 +537,7 @@
 
     //figure out the date range
     this.dateRange = {start: data[0][3], end: data[data.length-1][3]};
-    this.dayRange = Math.ceil((this.dateRange.end - this.dateRange.start) / this.DAY_IN_MILLI);
+    this.dayRange = Math.ceil((this.dateRange.end - this.dateRange.start) / DAY_IN_MILLI);
 
     this.isPaused = false;
 
@@ -548,7 +550,7 @@
       this.visibleLifespan = 10;
     else if(this.visibleLifespan > 30)
       this.visibleLifespan = 30;
-    this.visibleLifespan = this.visibleLifespan * this.DAY_IN_MILLI;
+    this.visibleLifespan = this.visibleLifespan * DAY_IN_MILLI;
 
     this.lowIndex = 0; //holds the data index of the oldest crime we are displaying
     this.highIndex = 0; //holds the data index of the newest crime we are displaying
@@ -593,8 +595,6 @@
         self.drawFrame(self.currentDate);        
     });
   };
-
-  CrimeAnimator.prototype.DAY_IN_MILLI = 1000 * 60 * 60 * 24;
 
   CrimeAnimator.prototype.setupProgressBar = function setupProgressBar() {
 
@@ -1025,22 +1025,22 @@
 
   var Data = <%- JSON.stringify(data) %>;  
 
-
-  //inflate dates/values from server and create mock times so that each days data is at least somewhat distributed
+  //transform and inflate dates from server and create mock times so that each days data is at least somewhat distributed
   var year = Data.year;
-  var rawCrimeData = Data.crimes;
-  Data.crimes = [];
-  for(var i=0, len=rawCrimeData.length ; i < len ; i += 7) {
-    var crime = [];
+  var crimes = Data.crimes;
+  var hourCounter, currentDay = 0, currentTimeStamp;
+  for(var i=0, len=crimes.length ; i < len ; i++) {
+    var crime = crimes[i];
 
-    crime.push((40000 + decode2DigitsFromBase100(rawCrimeData, i)) / 1000);
-    crime.push((60000 + decode2DigitsFromBase100(rawCrimeData, i+2)) / -1000);
-    crime.push(Number(rawCrimeData[i+4]));
+    if(currentDay != crime[4]) {
+      hourCounter = 0;
+      currentDay = crime[4];
 
-    var rawDateData = decode2DigitsFromBase100(rawCrimeData, i+5);
-    crime.push(Date.parse(year + '/' + (Math.floor(rawDateData / 100)+1) + '/' + (rawDateData % 100) +  ' ' + Math.floor(Math.random()*24) + ':00'));
+      currentTimeStamp = Date.parse(year + '/' + (crime[3]+1) + '/' + currentDay);
+    }
 
-    Data.crimes.push(crime);
+    crime[3] = currentTimeStamp + (hourCounter * (DAY_IN_MILLI / 50));
+    hourCounter += 1;
   }
 
   console.log(Data.crimes);
