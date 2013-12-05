@@ -345,7 +345,6 @@
       bottom:125px;
       margin-left:25px;
       overflow:visible;
-
     }
 
     #numbers, #colors {
@@ -363,11 +362,12 @@
       display:table-row;
     }
 
-    #numbers div span, #colors div span {
+    #numbers div a, #colors div span {
       width:100%;
       display:table-cell;
       text-align: center;
-        vertical-align: middle;
+      vertical-align: middle;
+      cursor:default;
     }
     #colors div:nth-child(1) span {background:#FCB7A7;}
     #colors div:nth-child(2) span {background:#F8F087;}
@@ -430,7 +430,7 @@
 <p>
   Halifax Crime Maps is an animated heatmap of crimes in Halifax powered by <a href='https://www.halifaxopendata.ca/'>OpenDataHalifax</a>. Watch each week as new data is added and the animation grows.
   <br><br>
-  Our heatmap shows the density of crime in Halifax. You can apply filters, drag the progress bar to spesific dates, or pause the animation and see the individual crime markers.
+  Our heatmap shows the density of crime in Halifax. You can apply filters, drag the progress bar to specific dates, or pause the animation and see the individual crime markers.
   <br><br>
   This requires some heavy duty HTML5 features and works best in Google Chrome. We disable certain features on mobile devices and other browsers.
 
@@ -469,7 +469,7 @@
     <li><label for='filter-auto-theft'>Auto Theft</label><input id='filter-auto-theft' type='checkbox' name='1' checked>
     <li><label for='filter-theft-auto'>Theft from Auto</label><input id='filter-theft-auto' type='checkbox' name='0' checked>
     <li><label for='filter-break-enter'>Break & Enter</label><input id='filter-break-enter'type='checkbox' name='2' checked>
-    <li><label for='filter-assult'>Assult</label><input id='filter-assult' type='checkbox' name='3' checked>
+    <li><label for='filter-assult'>Assault</label><input id='filter-assult' type='checkbox' name='3' checked>
     <li><label for='filter-robbery'>Robbery</label><input id='filter-robbery' type='checkbox' name='4' checked>
 
     <li class=title>Crime Markers
@@ -481,10 +481,10 @@
 
 <div id=legend>
   <div id=numbers>
-    <div><span>4<span></div>
-    <div><span>3<span></div>
-    <div><span>2<span></div>
-    <div><span>1<span></div>
+    <div><a title='Four Crimes'>4</a></div>
+    <div><a title='Three Crimes'>3</a></div>
+    <div><a title='Two Crimes'>2</a></div>
+    <div><a title='One Crime'>1</a></div>
   </div>
   <div id=colors>
     <div><span><span></div>
@@ -588,7 +588,7 @@
         radiusMultiplier = 1;
       else
         radiusMultiplier = 1.5;
-      console.log(radiusMultiplier);
+
       heatmap.heatmap.set('radius', zoom * radiusMultiplier);
 
       if(self.isPaused)
@@ -774,7 +774,6 @@
   };
 
   CrimeAnimator.prototype.start = function start() {
-    console.log('starting');
 
     //set the current date to the first day if we are at the end of the animation
     console.log(this.highIndex + ' >= ' + this.dataLength);
@@ -794,7 +793,6 @@
   }
 
   CrimeAnimator.prototype.pause = function pause() {
-    console.log('pausing');
 
     this.$animationControl.removeClass('pause');
     this.$animationControl.addClass('play');
@@ -807,7 +805,6 @@
   };
 
   CrimeAnimator.prototype.resume = function resume() {
-    console.log('resume');
 
     this.removeCrimeMarkers();
 
@@ -833,7 +830,6 @@
 
     var filterNumber = Number(checkbox.name);
     if(!checkbox.checked) {
-      console.log('adding filter');
       this.filters.push(filterNumber);
     } else {
       var index = this.filters.indexOf(filterNumber);
@@ -918,7 +914,6 @@
       timeFromHighIndex = this.currentDate - crime[3];
       var x = timeFromHighIndex / currentTimeRange;
       count = Math.abs(4 * (x - Math.pow(x, 2))); //exponential curve for fade in/out
-      //console.log(count);
       heatmapData.push({lat : crime[0], lng : crime[1], count: count});
     }
 
@@ -1038,12 +1033,10 @@
 
       currentTimeStamp = Date.parse(year + '/' + (crime[3]+1) + '/' + currentDay);
     }
-
-    crime[3] = currentTimeStamp + (hourCounter * (DAY_IN_MILLI / 50));
+    //auto generate hour to spread the crimes over the course of the day and get a smoother animation
+    crime[3] = currentTimeStamp + (hourCounter * (DAY_IN_MILLI / 40));
     hourCounter += 1;
   }
-
-  console.log(Data.crimes);
 
   function decode2DigitsFromBase100(rawCrimeData, i) {
     var test = rawCrimeData.charCodeAt(i);
