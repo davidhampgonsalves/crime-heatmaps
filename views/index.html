@@ -605,9 +605,11 @@
     
     this.progressBarStartPosition = Math.ceil($document.width() * 0.05);
     this.progressBarEndPosition = $document.width() - this.progressBarStartPosition;
+
     this.$progressBar.css('width', this.progressBarStartPosition + 'px');
 
-    this.totalTimeRange = this.dateRange.end - this.dateRange.start;   
+    this.totalTimeRange = this.dateRange.end - this.dateRange.start;
+
     this.totalPixelRange = this.progressBarEndPosition - this.progressBarStartPosition;
 
     var self = this;
@@ -776,7 +778,6 @@
   CrimeAnimator.prototype.start = function start() {
 
     //set the current date to the first day if we are at the end of the animation
-    console.log(this.highIndex + ' >= ' + this.dataLength);
     if (this.highIndex >= this.dataLength || !this.currentDate)
       this.currentDate = this.dateRange.start;
 
@@ -1023,15 +1024,21 @@
   //transform and inflate dates from server and create mock times so that each days data is at least somewhat distributed
   var year = Data.year;
   var crimes = Data.crimes;
-  var hourCounter, currentDay = 0, currentTimeStamp;
+  var hourCounter, month, currentDay = 0, currentTimeStamp;
   for(var i=0, len=crimes.length ; i < len ; i++) {
     var crime = crimes[i];
 
     if(currentDay != crime[4]) {
+
+      //check for crossing year
+      if(month > crime[3])
+        year += 1;
+      
+      month = crime[3];
       hourCounter = 0;
       currentDay = crime[4];
 
-      currentTimeStamp = Date.parse(year + '/' + (crime[3]+1) + '/' + currentDay);
+      currentTimeStamp = Date.parse(year + '/' + (month+1) + '/' + currentDay);
     }
     //auto generate hour to spread the crimes over the course of the day and get a smoother animation
     crime[3] = currentTimeStamp + (hourCounter * (DAY_IN_MILLI / 40));
