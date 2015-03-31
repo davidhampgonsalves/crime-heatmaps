@@ -17,13 +17,13 @@ app.configure(function(){
   app.use(express.favicon(__dirname + '/images/favicon.ico'));
 
   app.use(express.logger());
-
-  //app.use(express.bodyParser());
-  //app.use(express.methodOverride());
 });
 
 var crimeTypes = {'THEFT FROM VEHICLE':0, 'THEFT OF VEHICLE': 1, 'BREAK AND ENTER':2, 'ASSAULT': 3, 'ROBBERY': 4};
-app.get('/', function(req, res) {
+app.get('/', handleDataRequest); 
+app.get('/:year', handleDataRequest); 
+
+function handleDataRequest(req, res) {
 	res.header("Content-Type", "text/html; charset=utf-8");
 
 	var serverData = {};
@@ -31,17 +31,26 @@ app.get('/', function(req, res) {
 	mongo.Db.connect(mongoUri, function (err, db) {
 	  db.collection('crimes', function(er, collection) {
 	  	var crimes = [];
-		
-		collection.find().sort({"date":1}, function(err, cursor) {
+
+    var currentYear = 2014;
+    var requestedYear = req.params.year || currentYear;
+
+    var findQuery = {"date" : {"$gte" : new Date(requestedYear + "-01-01"), "$lt" : new Date((requestedYear + 1) + "-01-01")}};
+		collection.find(findQuery).sort({"date":1}, function(err, cursor) {
 			cursor.each(function(err, crime) {
 				//when our cusor is exhausted then render template
 				if(crime === null) {
 					serverData.crimes = crimes;
-					serverData.years = [2013];
+
+          var years = [];
+          for(var y=2013 ; y <= currentYear ; y++)
+            years.push(y);
+					serverData.years = years;
+          
 					res.render('index.html', { data: serverData });
 					return;
 				}
-				
+
 				var crimeDate = new Date(crime.date);
 				if(!serverData.year)
 					serverData.year = crimeDate.getFullYear();
@@ -53,7 +62,7 @@ app.get('/', function(req, res) {
 
 	  });
 	});
-});
+}
 
 function compressCoord(digits) {
 	digits *= 1000;

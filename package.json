@@ -1,6 +1,6 @@
 {
-  "name": "crime",
-  "version": "0.0.1",
+  "name": "crime-heatmaps",
+  "version": "0.0.2",
   "private": true,
   "dependencies": {
   	"shred": "*",

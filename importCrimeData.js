@@ -3,12 +3,8 @@ var Shred = require("shred");
 var mongo = require('mongodb');
 
 var mongoUri = process.env.MONGOHQ_URL ||
-  process.env.MONGOHQ_URL ||
   'mongodb://crimes:theendhasnoend@paulo.mongohq.com:10029/app17982596';
 
-//Set PATH=c:/node;%PATH%
-
-//https://www.halifaxopendata.ca/api/geospatial/kxfq-iuxg?method=export&format=KML
 var shred = new Shred();
 shred.get({
   url: "https://www.halifaxopendata.ca/api/geospatial/kxfq-iuxg?method=export&format=KML",
@@ -18,14 +14,13 @@ shred.get({
 		writeCrimesToDatabase(response.content.body);
 	},
 	response : function(response) {
-		console.log('shit! ' + response.content.body);
+		console.log('oh no!! ' + response.content.body);
 	}
   }
 });
 
-//pull latest crime data
+//Write base data to mongo
 //fs.readFile('data.xml', 'utf8', function(err, data) { writeCrimesToDatabase(data); });
-
 function writeCrimesToDatabase(data) {
 	var index = 0;
 	var tag;
@@ -82,7 +77,7 @@ function getNextTagValue(name, xml, index) {
 	index = xml.indexOf(name, index);
 	if(index === -1)
 		return null;
-	else 
+	else
 		index += name.length;
 
 	index =  xml.indexOf('>', index) + 1;
