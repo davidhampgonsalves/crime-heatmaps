@@ -104,10 +104,11 @@
       background:#87D69B;
       margin-right: -45px;
       margin-bottom:20px;
-      padding-top:20px;
+      padding-top:17px;
       text-align:center;
-      height:55px;
+      height:80px;
       width:90px;
+      line-height:150%;
 
       cursor: pointer;
     }
@@ -123,9 +124,12 @@
       margin-left: -15px;
     }
 
-    #progress-bar-pointer span {
+    #progress-bar-pointer .date-prefix {
       font-size:10px;
-      line-height:150%;
+    }
+
+    #progress-bar-pointer .year {
+      font-size:13px;
     }
 
     #progress-bar {
@@ -695,7 +699,9 @@
 
   CrimeAnimator.prototype.updateProgressBarText = function updateProgressBarText() {
         var now = new Date(this.currentDate);
-        this.$progressBarPointer.html(monthNames[now.getMonth()] + '<br>' + now.getDate() + '<span>' + getNumberPostfix(now.getDate()) + '</span>');
+        this.$progressBarPointer.html(monthNames[now.getMonth()] + '<br>' + now.getDate() + 
+            '<span class=date-prefix>' + getNumberPostfix(now.getDate()) + '</span><br>' +
+                                      '<span class=year>- ' + now.getFullYear() + ' -</span><br>');
   };
 
   var numberEndings = ['', 'st', 'nd', 'rd', 'th'];

@@ -7,15 +7,15 @@ var mongoUri = process.env.MONGOHQ_URL ||
 
 var shred = new Shred();
 shred.get({
-  url: "https://www.halifaxopendata.ca/api/geospatial/kxfq-iuxg?method=export&format=KML",
+  url: "http://catalogue.hrm.opendata.arcgis.com/datasets/f6921c5b12e64d17b5cd173cafb23677_0.kml",
   on: {
     // You can use response codes as events
     200: function(response) {
-		writeCrimesToDatabase(response.content.body);
-	},
-	response : function(response) {
-		console.log('oh no!! ' + response.content.body);
-	}
+      console.log('writing crimes to db')
+      writeCrimesToDatabase(response.content.body);
+    }, response : function(response) {
+      console.log('oh no!! ' + response.content.body);
+    }
   }
 });
 
@@ -28,33 +28,31 @@ function writeCrimesToDatabase(data) {
 	var coordinateAccuracy = 3;
 	var newCrimes = [];
 	while(true) {
-		tag = getNextTagValue('EVT_RIN</span>:</strong>', data, index);
+		tag = getNextTagValue('EVT_RIN', data, index);
 		if(tag === null)
 			break;
 		index = tag.index;
 		var id = tag.value;
 
-		tag = getNextTagValue('EVT_DATE</span>:</strong>', data, index);
+		tag = getNextTagValue('EVT_DATE', data, index);
 		index = tag.index;
 		var date = new Date(tag.value);
 
-		tag = getNextTagValue('RUCR_EXT_D</span>:</strong>', data, index);
+		tag = getNextTagValue('RUCR_EXT', data, index);
 		index = tag.index;
 		var type = tag.value;
 
-		tag = getNextTagValue('longitude', data, index);
+		tag = getNextTagValue('coordinates', data, index);
 		index = tag.index;
-		var longitude = round(new Number(tag.value), coordinateAccuracy);
-
-		tag = getNextTagValue('latitude', data, index);
-		index = tag.index;
-		var latitude = round(new Number(tag.value), coordinateAccuracy);
+    var latAndLon = tag.value.split(",");
+		var longitude = round(new Number(latAndLon[0]), coordinateAccuracy);
+		var latitude = round(new Number(latAndLon[1]), coordinateAccuracy);
 
 		count += 1;
 
 		//write crime data to db
 		//insert into crimes(esid, lat, lon, type, date) values($1, $2, $3, $4, $5)
-	    newCrimes.push({_id: id, latitude: latitude, longitude: longitude, type: type, date: date});
+    newCrimes.push({_id: id, latitude: latitude, longitude: longitude, type: type, date: date});
 	}
 
 	mongo.Db.connect(mongoUri, {safe:true}, function (err, db) {

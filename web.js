@@ -32,7 +32,7 @@ function handleDataRequest(req, res) {
 	  db.collection('crimes', function(er, collection) {
 	  	var crimes = [];
 
-    var currentYear = 2014;
+    var currentYear = new Date().getFullYear(); 
     var requestedYear = req.params.year || currentYear;
 
     var findQuery = {"date" : {"$gte" : new Date(requestedYear + "-01-01"), "$lt" : new Date((requestedYear + 1) + "-01-01")}};
