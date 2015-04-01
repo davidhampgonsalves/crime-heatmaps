@@ -52,6 +52,10 @@ function handleDataRequest(req, res) {
 				}
 
 				var crimeDate = new Date(crime.date);
+        //get one crime from the previous year so just manually filter it
+        if(crimeDate.getFullYear() != requestedYear)
+          return;
+
 				if(!serverData.year)
 					serverData.year = crimeDate.getFullYear();
 

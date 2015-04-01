@@ -238,11 +238,29 @@
       font-size:14px;
       background:#BFEADD;
     }
-    #options-area li.title {
+    #options-area li.title, #years li.title {
       margin-top: 10px;
       font-size: 16px;
       background:white;
     }
+
+    #years li:not(.title) {
+      padding:0;
+      width:176px;
+    }
+
+    #years li a {
+      padding: 8px 15px;
+      text-decoration: none;
+      color: black
+      width:150px;
+      display:block;
+      line-height:2.2;
+      background:#FFF
+    }
+    #years li a:hover {background:#AAEBBB}
+    #years li a.current {background:#DFD;}
+
     #options li:nth-child(2){background:#A1CDFB;}
     #options li:nth-child(3){background:#BFEADD;}
     #options li:nth-child(4){background:#C4B0DD;}
