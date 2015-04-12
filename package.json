@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "private": true,
   "dependencies": {
-  	"shred": "*",
+  	"shred": "0.x.x",
      "express": "3.1.x",
      "ejs": "*",
      "mongodb" : "1.3.*"
