@@ -564,7 +564,7 @@
     this.isPaused = false;
 
     //calculate the number of days that elapse for each animation frame
-    this.animationTimeMultiplier = 100000; //TODO: speed this up depending on dayRange
+    this.animationTimeMultiplier = 500000 * (this.dayRange / 365); 
 
     //calculate how long crimes should be displayed for based on our range
     this.visibleLifespan = Math.ceil(this.dayRange / 10);
