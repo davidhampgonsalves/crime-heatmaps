@@ -43,6 +43,10 @@ function writeCrimesToDatabase(data) {
 		var type = tag.value;
 
 		tag = getNextTagValue('coordinates', data, index);
+    // HACK - sometimes there aren't coords, api must have changed so just skip these
+    if( tag === null )
+      continue;
+
 		index = tag.index;
     var latAndLon = tag.value.split(",");
 		var longitude = round(new Number(latAndLon[0]), coordinateAccuracy);
