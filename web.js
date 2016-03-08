@@ -26,17 +26,13 @@ app.get('/:year', handleDataRequest);
 function handleDataRequest(req, res) {
 	res.header("Content-Type", "text/html; charset=utf-8");
 
-  // project is in archive status using the final hardcoded data
-  res.render('index.html');
-  return
-
 	var serverData = {};
 	serverData.year = null;
 	mongo.Db.connect(mongoUri, function (err, db) {
 	  db.collection('crimes', function(er, collection) {
 	  	var crimes = [];
 
-      var currentYear = 2015;
+      var currentYear = 2014;
       var requestedYear = req.params.year || currentYear;
 
       var findQuery = {"date" : {"$gte" : new Date(requestedYear + "-01-01"), "$lt" : new Date((requestedYear + 1) + "-01-01")}};
