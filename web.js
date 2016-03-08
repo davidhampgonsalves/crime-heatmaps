@@ -20,11 +20,15 @@ app.configure(function(){
 });
 
 var crimeTypes = {'THEFT FROM VEHICLE':0, 'THEFT OF VEHICLE': 1, 'BREAK AND ENTER':2, 'ASSAULT': 3, 'ROBBERY': 4};
-app.get('/', handleDataRequest); 
-app.get('/:year', handleDataRequest); 
+app.get('/', handleDataRequest);
+app.get('/:year', handleDataRequest);
 
 function handleDataRequest(req, res) {
 	res.header("Content-Type", "text/html; charset=utf-8");
+
+  // project is in archive status using the final hardcoded data
+  res.render('index.html');
+  return
 
 	var serverData = {};
 	serverData.year = null;
@@ -32,35 +36,36 @@ function handleDataRequest(req, res) {
 	  db.collection('crimes', function(er, collection) {
 	  	var crimes = [];
 
-    var currentYear = new Date().getFullYear(); 
-    var requestedYear = req.params.year || currentYear;
+      var currentYear = 2015;
+      var requestedYear = req.params.year || currentYear;
 
-    var findQuery = {"date" : {"$gte" : new Date(requestedYear + "-01-01"), "$lt" : new Date((requestedYear + 1) + "-01-01")}};
-		collection.find(findQuery).sort({"date":1}, function(err, cursor) {
-			cursor.each(function(err, crime) {
-				//when our cusor is exhausted then render template
-				if(crime === null) {
-					serverData.crimes = crimes;
+      var findQuery = {"date" : {"$gte" : new Date(requestedYear + "-01-01"), "$lt" : new Date((requestedYear + 1) + "-01-01")}};
+      collection.find(findQuery).sort({"date":1}, function(err, cursor) {
+        cursor.each(function(err, crime) {
+          //when our cusor is exhausted then render template
+          if(crime === null) {
+            serverData.crimes = crimes;
 
-          var years = [];
-          for(var y=2013 ; y <= currentYear ; y++)
-            years.push(y);
-					serverData.years = years;
-          
-					res.render('index.html', { data: serverData });
-					return;
-				}
+            var years = [];
+            for(var y=2013 ; y <= currentYear ; y++)
+              years.push(y);
+            serverData.years = years;
 
-				var crimeDate = new Date(crime.date);
-        //get one crime from the previous year so just manually filter it
-        if(crimeDate.getFullYear() != requestedYear)
-          return;
+            console.log(serverData)
+            res.render('index.html', { data: serverData });
+            return;
+          }
 
-				if(!serverData.year)
-					serverData.year = crimeDate.getFullYear();
+          var crimeDate = new Date(crime.date);
+          //get one crime from the previous year so just manually filter it
+          if(crimeDate.getFullYear() != requestedYear)
+            return;
 
-				crimes.push([crime.latitude, crime.longitude, crimeTypes[crime.type], crimeDate.getMonth(), crimeDate.getDate()]);
-				//COMPRESSED: crimes.push(compressCoord(crime.latitude) + compressCoord(crime.longitude) + crimeTypes[crime.type] + compress4Digits((crimeDate.getMonth() * 100) + crimeDate.getDate()));
+          if(!serverData.year)
+            serverData.year = crimeDate.getFullYear();
+
+          crimes.push([crime.latitude, crime.longitude, crimeTypes[crime.type], crimeDate.getMonth(), crimeDate.getDate()]);
+          //COMPRESSED: crimes.push(compressCoord(crime.latitude) + compressCoord(crime.longitude) + crimeTypes[crime.type] + compress4Digits((crimeDate.getMonth() * 100) + crimeDate.getDate()));
 			});
 		});
 
