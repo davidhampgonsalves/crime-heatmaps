@@ -1,11 +1,9 @@
 var express = require("express");
-var mongo = require('mongodb');
+var MongoClient = require('mongodb').MongoClient
 
 var path = require('path');
 
-var mongoUri = process.env.MONGOHQ_URL ||
-  process.env.MONGOHQ_URL ||
-  'mongodb://crimes:theendhasnoend@paulo.mongohq.com:10029/app17982596';
+var url = process.env.MONGODB_URI || '';
 
 var app = express();
 app.configure(function(){
@@ -24,13 +22,22 @@ app.get('/', handleDataRequest);
 app.get('/:year', handleDataRequest);
 
 function handleDataRequest(req, res) {
-	res.header("Content-Type", "text/html; charset=utf-8");
+  res.header("Content-Type", "text/html; charset=utf-8");
 
-	var serverData = {};
-	serverData.year = null;
-	mongo.Db.connect(mongoUri, function (err, db) {
-	  db.collection('crimes', function(er, collection) {
-	  	var crimes = [];
+  var serverData = {};
+  serverData.year = null;
+  MongoClient.connect(url, function(err, db) {
+    if(err) {
+      console.error(er);
+      return
+    }
+
+    db.collection('crimes', function(err, collection) {
+      if(err) {
+        console.error(er);
+        return
+      }
+      var crimes = [];
 
       var currentYear = 2014;
       var requestedYear = req.params.year || currentYear;
@@ -48,7 +55,7 @@ function handleDataRequest(req, res) {
             serverData.years = years;
 
             console.log(serverData)
-            res.render('index.html', { data: serverData });
+              res.render('index.html', { data: serverData });
             return;
           }
 
@@ -62,26 +69,25 @@ function handleDataRequest(req, res) {
 
           crimes.push([crime.latitude, crime.longitude, crimeTypes[crime.type], crimeDate.getMonth(), crimeDate.getDate()]);
           //COMPRESSED: crimes.push(compressCoord(crime.latitude) + compressCoord(crime.longitude) + crimeTypes[crime.type] + compress4Digits((crimeDate.getMonth() * 100) + crimeDate.getDate()));
-			});
-		});
-
-	  });
-	});
+        });
+      });
+    });
+  });
 }
 
 function compressCoord(digits) {
-	digits *= 1000;
+  digits *= 1000;
 
-	if(digits < 0)
-		digits = Math.abs(digits + 60000);
-	else
-		digits -= 40000;
+  if(digits < 0)
+    digits = Math.abs(digits + 60000);
+  else
+    digits -= 40000;
 
-	return compress4Digits(digits);
+  return compress4Digits(digits);
 }
 
 function compress4Digits(digits) {
-	return '' + String.fromCharCode(Math.floor(digits/100) + 65) + String.fromCharCode((digits % 100) + 65);
+  return '' + String.fromCharCode(Math.floor(digits/100) + 65) + String.fromCharCode((digits % 100) + 65);
 }
 
 
