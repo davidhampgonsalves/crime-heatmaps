@@ -1012,7 +1012,8 @@
       for(var i=0, len=Data.years.length ; i < len ; i++) {
         var year = Data.years[i];
         var isCurrent = Data.year === year;
-        yearsMarkup.push('<li><a href="/' + year + '"' + (isCurrent ? ' class=current' : '') + '>' + year + '</a>');
+        var isCurrentYear = year === new Date().getFullYear();
+        yearsMarkup.push('<li><a href="/' + (isCurrentYear ? '' : year) + '"' + (isCurrent ? ' class=current' : '') + '>' + year + '</a>');
       }
       $('#years').append(yearsMarkup.join(''));
 

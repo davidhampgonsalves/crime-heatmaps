@@ -1,26 +1,56 @@
-var fs = require('fs');
-var Shred = require("shred");
-var MongoClient = require('mongodb').MongoClient
+const fs = require('fs');
+const request = require('request');
+const pg = require('pg');
+const parse = require('pg-connection-string').parse;
+const R = require('ramda');
 
-var url = process.env.MONGODB_URI || '';
+const pgUrl = process.env.DATABASE_URL;
+const pgOptions = R.merge(parse(pgUrl), {ssl: true});
+const url = 'https://services2.arcgis.com/11XBiaBYA9Ep0yNJ/ArcGIS/rest/services/Crime/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=true&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=1000';
 
-//var shred = new Shred();
-//shred.get({
-//url: "http://catalogue.hrm.opendata.arcgis.com/datasets/f6921c5b12e64d17b5cd173cafb23677_0.kml",
-//on: {
-//// You can use response codes as events
-//200: function(response) {
-//console.log('writing crimes to db')
-//writeCrimesToDatabase(response.content.body);
-//}, response : function(response) {
-//console.log('oh no!! ' + response.content.body);
-//}
-//}
-//});
+request({url:url, json:true}, (error, response, json) => {
+  if (!error && response.statusCode == 200) {
+    writeJsonToDatabase(json);
+  }
+})
 
-//Write base data to mongo
-fs.readFile('base-data.xml', 'utf8', function(err, data) { writeCrimesToDatabase(data); });
-function writeCrimesToDatabase(data) {
+const writeJsonToDatabase = (json) => {
+  const crimes = R.map((crime) => {
+    const a = crime.attributes;
+    const point = toGeographic(crime.geometry.x, crime.geometry.y);
+    return {
+      id: a['EVT_RIN'],
+      type: a['RUCR_EXT_D'],
+      at: new Date(a['EVT_DATE']),
+      latitude: point.latitude,
+      longitude: point.longitude,
+    };
+  }, json.features);
+
+  console.log(`writing ${crimes.length} to database`);
+  storeCrimes(crimes);
+}
+
+function toGeographic(xMercator, yMercator) {
+  if (Math.abs(xMercator) < 180 && Math.abs(yMercator) < 90)
+     return null;
+  if ((Math.abs(xMercator) > 20037508.3427892) || (Math.abs(yMercator) > 20037508.3427892))
+      return null;
+  var x = xMercator;
+  var y = yMercator;
+  var w1 = x = x / 6378137.0;
+  var w2 = x * 57.295779513082323;
+  var w3 = Math.floor((x + 180.0) / 360.0);
+  x = w2 - (w3 * 360.0);
+  y = (1.5707963267948966 - (2.0 * Math.atan(Math.exp((-1.0 * y) / 6378137.0)))) * 57.295779513082323;
+  return {
+    longitude: x,
+    latitude: y
+  }
+}
+
+//fs.readFile('base-data.xml', 'utf8', function(err, data) { writeXmlToDatabase(data); });
+function writeXmlToDatabase(data) {
   var index = 0;
   var tag;
   var count = 0;
@@ -53,27 +83,34 @@ function writeCrimesToDatabase(data) {
 
     count += 1;
 
-    //write crime data to db
-    //insert into crimes(esid, lat, lon, type, date) values($1, $2, $3, $4, $5)
-    newCrimes.push({_id: id, latitude: latitude, longitude: longitude, type: type, date: date});
+    newCrimes.push({id: id, latitude: latitude, longitude: longitude, type: type, at: date});
   }
 
-  MongoClient.connect(url, function(err, db) {
-    if(err) {
+  storeCrimes(newCrimes);
+}
+
+const storeCrimes = (crimes) => {
+  if(R.isEmpty(crimes)) {
+    console.log('done');
+    return
+  }
+
+  const crime = R.last(crimes);
+  const client = new pg.Client(pgOptions);
+  client.connect(function (err) {
+    if (err)
       console.error(err);
-      return
-    }
 
-    db.collection('crimes', function(err, collection) {
-      if(err) {
+    console.log(`persisting ${crime.id} to db`);
+    client.query('insert into crimes(id, latitude, longitude, type, at) values($1::int, $2::float, $3::float, $4::text, $5::date)',
+        [crime.id, crime.latitude, crime.longitude, crime.type, crime.at], function (err, result) {
+      if (err)
         console.error(err);
-        return
-      }
-      while(newCrimes.length > 0)
-        collection.insert(newCrimes.pop(), function() {});
 
-      console.log('added ' + count + ' new records.');
-      db.close();
+      client.end(function (err) {
+        if (err) throw err;
+        storeCrimes(R.dropLast(1, crimes));
+      });
     });
   });
 }
