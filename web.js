@@ -50,9 +50,8 @@ function handleDataRequest(req, res) {
         return [Number(c.latitude), Number(c.longitude), crimeTypes[c.type], date.getMonth(), date.getDate()];
       }, result.rows);
 
-      const years = R.prepend(2013, R.range(2017, currentYear+1));
       const data = {
-        years: years,
+        years: R.range(2013, currentYear+1),
         crimes: crimes,
         year: requestedYear,
       };
