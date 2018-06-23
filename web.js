@@ -38,17 +38,21 @@ function handleDataRequest(req, res) {
     const currentYear = new Date().getFullYear();
     const requestedYear = Number(req.params.year) || currentYear;
     console.log(requestedYear);
-    client.query(`SELECT * from crimes where at between '${requestedYear}-01-01'::DATE and '${requestedYear+1}-01-01'::DATE order by at`, function(err, result) {
+    client.query(`SELECT crimes from crimes_by_year where year = ${requestedYear}`, function(err, result) {
       done();
 
-      if(err) {
+      if(err)
         return console.error('error running query', err);
-      }
 
-      const crimes = R.map((c) => {
-        const date = new Date(c.at);
-        return [Number(c.latitude), Number(c.longitude), crimeTypes[c.type], date.getMonth(), date.getDate()];
-      }, result.rows);
+      const crimes = R.pipe(
+        R.path(['rows', 0, 'crimes']),
+        R.sortBy(R.prop('at')),
+        R.map((c) => {
+          const date = new Date(c.at);
+          return [Number(c.latitude), Number(c.longitude), crimeTypes[c.type], date.getMonth(), date.getDate()];
+        }),
+      )(result);
+
 
       const data = {
         years: R.range(2013, currentYear+1),

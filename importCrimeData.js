@@ -27,7 +27,6 @@ const writeJsonToDatabase = (json) => {
     };
   }, json.features);
 
-  console.log(`writing ${crimes.length} to database`);
   storeCrimes(crimes);
 }
 
@@ -90,27 +89,33 @@ function writeXmlToDatabase(data) {
 }
 
 const storeCrimes = (crimes) => {
-  if(R.isEmpty(crimes)) {
-    console.log('done');
-    return
-  }
+  if(R.isEmpty(crimes))
+    return console.log('done');
 
-  const crime = R.last(crimes);
+  const year = R.path([0, 'at'], crimes).getFullYear();
   const client = new pg.Client(pgOptions);
   client.connect(function (err) {
     if (err)
       console.error(err);
 
-    console.log(`persisting ${crime.id} to db`);
-    client.query('insert into crimes(id, latitude, longitude, type, at) values($1::int, $2::float, $3::float, $4::text, $5::date)',
-        [crime.id, crime.latitude, crime.longitude, crime.type, crime.at], function (err, result) {
+    client.query('select crimes from crimes_by_year where year = $1::int', [year], (err, result) => {
       if (err)
         console.error(err);
 
-      client.end(function (err) {
-        if (err) throw err;
-        storeCrimes(R.dropLast(1, crimes));
+      const existingCrimes = R.path(['rows', 0, 'crimes'], result);
+      const uniqCrimes = R.pipe(
+        R.concat(crimes),
+        R.uniqBy(R.prop('id')),
+      )(existingCrimes);
+
+      console.log(`persisting ${crimes.length} crimes to db`);
+      client.query('insert into crimes_by_year(year, crimes) values($1::int, $2::jsonb) on conflict(year) do update set crimes = crimes_by_year.crimes || $2::jsonb',
+          [year, JSON.stringify(crimes)], function (err, result) {
+        if (err)
+          console.error(err);
       });
+
+      process.exit();
     });
   });
 }
