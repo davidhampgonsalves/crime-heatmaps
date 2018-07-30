@@ -1,5 +1,6 @@
-Halifax Crime Heatmap
-=====================
+<img align="right" src="https://github.com/davidhampgonsalves/crime-heatmaps/raw/master/crime-heatmap.gif">
+
+# Halifax Crime Heatmap
 
 [Halifix Crime Heatmap](http://www.crimeheatmap.ca/) is an HTML5 animated heatmap visualization of crime for the city of Halifax.
 
