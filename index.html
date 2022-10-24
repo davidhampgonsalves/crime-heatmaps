@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <link
+      href="http://fonts.googleapis.com/css?family=Open+Sans:700,300"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="about-message" class="message-box">
+      <h2>About the Halifax Crime Heatmap</h2>
+      <p>
+        Halifax Crime Maps is an animated heatmap of crimes in Halifax powered
+        by <a href="https://www.halifaxopendata.ca/">OpenDataHalifax</a>. Watch
+        each week as new data is added and the animation grows. <br /><br />
+        Our heatmap shows the density of crime in Halifax. You can apply
+        filters, drag the progress bar to specific dates, or pause the animation
+        and see the individual crime markers.
+        <br /><br />
+        This requires some heavy duty HTML5 features and works best in Google
+        Chrome. We disable certain features on mobile devices and other
+        browsers.
+      </p>
+
+      <div class="mobile-only-content">
+        <div id="mobile-icon">
+          <div class="line"></div>
+          <div class="screen"></div>
+          <div class="dot"></div>
+        </div>
+        We can only pack so much awesome into your mobile device, visit on a
+        computer for the full effect.
+      </div>
+
+      <p class="footer">
+        By <a href="http://www.davidhampgonsalves.com">David Hamp-Gonsalves.</a>
+      </p>
+    </div>
+
+    <div id="header">
+      <h1>Halifax<span>Crime</span></h1>
+      <div id="animation-control-button" class="button">
+        <div class="pause"></div>
+      </div>
+    </div>
+
+    <div id="options-area">
+      <a href="#" id="options-button" class="button button-right">options</a>
+      <a href="#" id="years-button" class="button button-right">years</a>
+      <a href="#" id="about-button" class="button button-right">about</a>
+
+      <ul id="years">
+        <li class="title">Years</li>
+      </ul>
+
+      <ul id="options">
+        <li class="title">Filters</li>
+        <li>
+          <label for="filter-auto-theft">Auto Theft</label
+          ><input id="filter-auto-theft" type="checkbox" name="1" checked />
+        </li>
+        <li>
+          <label for="filter-theft-auto">Theft from Auto</label
+          ><input id="filter-theft-auto" type="checkbox" name="0" checked />
+        </li>
+        <li>
+          <label for="filter-break-enter">Break & Enter</label
+          ><input id="filter-break-enter" type="checkbox" name="2" checked />
+        </li>
+        <li>
+          <label for="filter-assult">Assault</label
+          ><input id="filter-assult" type="checkbox" name="3" checked />
+        </li>
+        <li>
+          <label for="filter-robbery">Robbery</label
+          ><input id="filter-robbery" type="checkbox" name="4" checked />
+        </li>
+
+        <li class="title">Crime Markers</li>
+        <li>
+          <label for="options-markers">Show on Pause</label
+          ><input
+            id="options-markers"
+            type="checkbox"
+            name="crime-markers"
+            checked
+          />
+        </li>
+      </ul>
+    </div>
+
+    <div id="heatmapArea"></div>
+
+    <div id="legend">
+      <div id="numbers">
+        <div><a title="Four Crimes">4</a></div>
+        <div><a title="Three Crimes">3</a></div>
+        <div><a title="Two Crimes">2</a></div>
+        <div><a title="One Crime">1</a></div>
+      </div>
+      <div id="colors">
+        <div><span></span></div>
+        <div><span></span></div>
+        <div><span></span></div>
+        <div><span></span></div>
+      </div>
+    </div>
+
+    <div id="progress-bar-background"></div>
+    <div id="progress-bar-container">
+      <div id="progress-bar-pointer-container">
+        <div id="progress-bar-pointer" onclick="void(0)"></div>
+        <div id="progress-bar-instructions">drag me<br />to skip days</div>
+      </div>
+      <div id="progress-bar"></div>
+    </div>
+  </body>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAW-suM4dOpufVKtP04slqlWVLx4PBCr4M&libraries=marker&language=en&callback=initMap"></script>
+  <script type="text/javascript" src="js/crimeAnimator.js"></script>
+  <script type="text/javascript">
+    var DAY_IN_MILLI = 1000 * 60 * 60 * 24;
+    var isMobile =
+      typeof window.orientation !== "undefined" && !userAgent.match(/iPad/i);
+
+    var mapLoaded = false,
+      dataLoaded = false;
+    var Data;
+    function initMap() {
+      mapLoaded = true;
+      if (dataLoaded) init();
+    }
+    function initData() {}
+    $.getJSON("./data.json", function (data) {
+      Data = data;
+      dataLoaded = true;
+      if (mapLoaded) init();
+    });
+
+    let params = new URLSearchParams(window.location.search);
+    var currentYear = params.has("year") ? Number(params.get("year")) : 2015;
+
+    function init() {
+      //transform and inflate dates from server and create mock times so that each days data is at least somewhat distributed
+      var crimes = Data.crimes[currentYear];
+      var hourCounter,
+        year = currentYear,
+        month,
+        currentDay = 0,
+        currentTimeStamp;
+      for (var i = 0, len = crimes.length; i < len; i++) {
+        var crime = crimes[i];
+
+        if (currentDay != crime[4]) {
+          //check for crossing year
+          if (month > crime[3]) year += 1;
+
+          month = crime[3];
+          hourCounter = 0;
+          currentDay = crime[4];
+
+          currentTimeStamp = Date.parse(
+            year + "/" + (month + 1) + "/" + currentDay
+          );
+        }
+        //auto generate hour to spread the crimes over the course of the day and get a smoother animation
+        crime[3] = currentTimeStamp + hourCounter * (DAY_IN_MILLI / 40);
+        hourCounter += 1;
+      }
+
+      var myLatlng = new google.maps.LatLng(44.6544, -63.5992);
+
+      var myOptions = {
+        zoom: 12,
+        center: myLatlng,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        disableDefaultUI: true,
+        scrollwheel: true,
+        draggable: true,
+        navigationControl: true,
+        mapTypeControl: false,
+        scaleControl: true,
+        zoomControl: true,
+        zoomControlOptions: {
+          style: google.maps.ZoomControlStyle.DEFAULT,
+          position: google.maps.ControlPosition.RIGHT_CENTER,
+        },
+        disableDoubleClickZoom: false,
+        styles: [
+          {
+            stylers: [
+              { saturation: -26 },
+              { lightness: 18 },
+              { visibility: "on" },
+            ],
+          },
+        ],
+      };
+      var map = new google.maps.Map($("#heatmapArea")[0], myOptions);
+
+      var heatmap = new HeatmapOverlay(map, {
+        radius: 30,
+        visible: true,
+        opacity: 40,
+      });
+
+      var crimeAnimator = new CrimeAnimator(crimes, heatmap, map);
+
+      window.requestAnimationFrame =
+        window.requestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        function (fn) {
+          return setTimeout(fn, 1000 / 60);
+        };
+
+      if (isMobile) $(".mobile-only-content").show();
+
+      //handle the filter area drop down on click
+      $("#options-button").click(function () {
+        var $options = $("#options li");
+        fadeEachOption($("#years li").toArray(), true); //hide other options
+        fadeEachOption(
+          $options.toArray(),
+          $options.css("margin-right") === "0px"
+        );
+      });
+
+      $("#years-button").click(function () {
+        var $options = $("#years li");
+        fadeEachOption($("#options li").toArray(), true); //hide other options
+        fadeEachOption(
+          $options.toArray(),
+          $options.css("margin-right") === "0px"
+        );
+      });
+
+      $("#about-button").click(function () {
+        $("#about-message").toggle();
+      });
+
+      //setup the year links and filters drop down
+      var yearsMarkup = [];
+      for (var i = 0, len = Data.years.length; i < len; i++) {
+        var isCurrent = currentYear === Data.years[i];
+        yearsMarkup.push(
+          "<li><a href=?year=" +
+            Data.years[i] +
+            (isCurrent ? " class=current" : "") +
+            ">" +
+            Data.years[i] +
+            "</a>"
+        );
+      }
+      $("#years").append(yearsMarkup.join(""));
+
+      // this is important, because if you set the data set too early, the latlng/pixel projection doesn't work
+      google.maps.event.addListenerOnce(map, "idle", function () {
+        //wait a bit for the user to get use to the map before we blow their mind with the animation
+        window.setTimeout(function () {
+          crimeAnimator.start();
+        }, 1000);
+
+        //if first launch then display instructions if not mobile
+        if (!isMobile && localStorage.getItem("isReturningUser") !== "true") {
+          localStorage.setItem("isReturningUser", "true");
+
+          //display pointer instructions for 5 seconds after 5 seconds
+          var $progressBarInstructions = $("#progress-bar-instructions");
+          window.setTimeout(function () {
+            $progressBarInstructions.css("display", "inline-block");
+          }, 5000);
+
+          window.setTimeout(function () {
+            $progressBarInstructions.hide();
+          }, 15000);
+        }
+      });
+    }
+
+    function fadeEachOption(options, isFadeIn) {
+      if (options.length <= 0) return;
+
+      options.shift().style.marginRight = isFadeIn ? "-200px" : "0";
+
+      //adjust the wait time depending on if we are animating(which slows everything down)
+      window.setTimeout(
+        fadeEachOption.bind(this, options, isFadeIn),
+        this.isPaused || !this.isAnimating ? 30 : 0
+      );
+    }
+  </script>
+
+  <script type="text/javascript" src="js/h-map.js"></script>
+  <script type="text/javascript" src="js/h-gmap.js"></script>
+</html>
